@@ -1,0 +1,99 @@
+# wetlands
+
+# Average ammonia levels in 2021 at Wetland Basin 3
+
+avg_nh3 <- sond_new %>% 
+  group_by(Month) %>% 
+  filter(year == 2021)%>%
+  summarise(total = mean(`NH3 mg/L`, na.rm = TRUE)) %>%
+  mutate(Month = factor(Month, 
+                        levels = c("January", "February", "March",
+                                   "April", "May", "June", "July", "August", "September", "October",
+                                   "November", "December")))%>%
+  na.omit('NA')
+
+ggplot(data = avg_nh3, aes(x = Month, y = total, group = 1)) +
+  geom_point() +
+  geom_line(color = "magenta") +
+  theme(axis.text = element_text(angle = 90)) +
+  labs(title = "Average Monthly Ammonia Levels (NH3 mg/L)",
+       subtitle = "At Wetland Basin 3 in 2021",
+       caption = "SONDE DATA",
+       y = "Average Ammonia Levels (mg/L)")
+
+#Average Monthly Percentage of Dissolved Oxygen Saturation (2021) at Wetland Basin 3
+avg_odo_sat <- sond_new %>% 
+  group_by(Month) %>% 
+  filter(year == 2021) %>% 
+  summarise(total = mean(`ODO % sat`, na.rm = TRUE)) %>% 
+  mutate(Month = factor(Month, 
+                        levels = c("January", "February", "March",
+                                   "April", "May", "June", "July", "August", "September", "October",
+                                   "November", "December"))) %>%
+  na.omit('NA')
+
+
+ggplot(data = avg_odo_sat, aes(x = Month, y = total, group = 1)) +
+  geom_point() +
+  geom_line(color = "blue") +
+  theme(axis.text = element_text(angle = 90)) +
+  labs(title = "Average Monthly Percentage of Dissolved Oxygen Saturation",
+       subtitle = " At Wetland Basin 3 in 2021",
+       caption = "SONDE DATA",
+       y = "Average Dissolved Oxygen Saturation (%)")
+
+# Monthly Averages of Dissolved Oxygen Levels (2021) at Wetland Basin 3
+
+avg_odo_lev <- sond_new %>% 
+  group_by(Month) %>% 
+  filter(year == 2021) %>% 
+  summarise(total = mean(`ODO mg/L`, na.rm = TRUE)) %>% 
+  mutate(Month = factor(Month, 
+                        levels = c("January", "February", "March",
+                                   "April", "May", "June", "July", "August", "September", "October",
+                                   "November", "December"))) %>%
+  na.omit('NA')
+
+
+ggplot(data = avg_odo_lev, aes(x = Month, y = total, group = 1)) +
+  geom_point() +
+  geom_line(color = "darkgreen") +
+  theme(axis.text = element_text(angle = 90)) +
+  labs(title = "Average Monthly Dissolved Oxygen Levels (mg/L)",
+       subtitle = "At Wetland Basin 3 in 2021",
+       caption = "SONDE DATA",
+       y = "Average Dissolved Oxygen Levels (mg/L)")
+
+# Monthly Averages of Ammonium (2021) at Wetland Basin 3
+ 
+avg_ammon <- sond_new %>% 
+  group_by(Month) %>% 
+  filter(year == 2021) %>% 
+  summarise(total = mean(`NH4+ -N mg/L`, na.rm = TRUE)) %>% 
+  mutate(Month = factor(Month, 
+                        levels = c("January", "February", "March",
+                                   "April", "May", "June", "July", "August", "September", "October",
+                                   "November", "December"))) %>%
+  na.omit('NA')
+
+
+ggplot(data = avg_ammon, aes(x = Month, y = total, group = 1)) +
+  geom_point() +
+  geom_line(color = "purple") +
+  theme(axis.text = element_text(angle = 90)) +
+  labs(title = "Average Monthly Ammonium Levels" ,
+       subtitle = " At Wetland Basin 3 in 2021",
+       caption = "SONDE DATA",
+       y = "Average Ammonium Levels (mg/L)")
+
+
+
+
+
+
+
+
+
+
+
+
