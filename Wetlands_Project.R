@@ -250,4 +250,4 @@ ggplot(data = avgtemp, aes(x = month, y = avgtemp))+
        y = 'Average Temperature (C)', 
        x = 'Month')
        
-       #Tessa was here 
+       #nah son
