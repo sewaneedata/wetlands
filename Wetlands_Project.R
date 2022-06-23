@@ -249,3 +249,5 @@ ggplot(data = avgtemp, aes(x = month, y = avgtemp))+
        subtitle = 'Average Temperature per Month', 
        y = 'Average Temperature (C)', 
        x = 'Month')
+       
+       #Tessa was here 
