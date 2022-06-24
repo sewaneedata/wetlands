@@ -78,12 +78,12 @@ sond_cond <- sond_new %>%
  
 # Plot of average Conductance 
 
-ggplot(data = sond_cond, aes(x = month, y = avgConduc))+
+ggplot(data = sond_cond, aes(x = month, y = avgConduc, group = 1))+
   geom_point()+
-  geom_col(fill = 'yellow')+
+  geom_line(color = 'yellow')+
 theme(axis.text = element_text(angle = 90))+
   theme(legend.position = 'none')+
-  labs(title = "Average Conductance 2021",
+  labs(title = "Average Conductance in Basin 3 (2021)",
        subtitle = 'Average Conductance (uS/cm) per Month',
        y = 'Average Conductance (uS/cm)',
        x = 'Month')
@@ -105,9 +105,9 @@ avgturb <- sond_new %>%
 
 # Plot of avg Turbidity 
 
-ggplot(data = avgturb, aes(x = month, y = avgturb) ) +
+ggplot(data = avgturb, aes(x = month, y = avgturb, group = 1) ) +
   geom_point()+
-  geom_col(fill = 'blue')+
+  geom_line(color = 'deeppink1')+
   theme(axis.text = element_text(angle = 90))+
   theme(legend.position = 'none')+
   labs(title = 'Average Turbidity 2021',
@@ -131,18 +131,25 @@ mutate(month = factor(month,
                                  'July', 'August', 'September', 
                                  'October', 'November', 'December'))) %>% 
   na.omit()
+# plot of avg pH
+ggplot(data = avgph, aes(x = month, y = avgph, group = 1))+
+  geom_point()+
+  geom_line(color = 'blue')+
+  theme(axis.text = element_text(angle = 90))+
+  theme(legend.position = 'none')+
+  labs(title = "Average pH in Lagoon C (2021)",
+       subtitle = 'Average pH per Month',
+       y = 'Average pH',
+       x = 'Month')
 
 # Average Turbidity and pH per Month (2021)
 
 ggplot()+
-  geom_col(data = avgph, aes(x = month, y = avgph), 
-           fill = 'skyblue')+
-  geom_col(data = avgturb, aes(x = month, y = avgturb, 
-           fill = 'magenta'), alpha = .5)+ 
-theme(axis.text = element_text(angle = 90))+
-  theme(legend.position = 'none')+
-  labs(title = 'Average Turbidity by pH 2021',
-       subtitle = 'Average Turbidity and pH per Month',
+  geom_line(data = avgph, aes(x = month, y = avgph, group = 1),color = "blue")+ 
+       geom_line(data = avgturb, aes(x = month, y = avgturb, group = 1), color = "hot pink")+
+        theme(axis.text = element_text(angle = 90))+
+  labs(title = 'Average Turbidity by pH in Basin 3 (2021)',
+       subtitle = 'pH and Turbidity (NTUs)',
        y = 'Average Turbidity NTU and pH',
        x = 'Month')
 
@@ -163,12 +170,12 @@ avgorp <- sond_new %>%
 
 # Average ORP graph 
 
-ggplot(data = avgorp, aes(x = month, y = avgorp))+
+ggplot(data = avgorp, aes(x = month, y = avgorp, group = 1))+
   geom_point()+
-  geom_col(fill = 'brown')+
+  geom_line(color = 'brown')+
   theme(legend.position = 'none')+
   theme(axis.text= element_text(angle = 90))+
-  labs(title = 'Average ORP 2021', 
+  labs(title = 'Average ORP in Basin 3 (2021)', 
        subtitle = 'Average ORP per Month', 
        y = 'Average ORP (mV)', 
        x = 'Month')
@@ -189,12 +196,12 @@ avgspcond <- sond_new %>%
 
 # Graph of specific conductance (uS/cm) (0-200-low)(200-1000 mid)(1000-10000 high)
 
-ggplot(data = avgspcond, aes(x = month, y = avgspcond))+
-  geom_col(fill = 'bisque2')+
+ggplot(data = avgspcond, aes(x = month, y = avgspcond, group = 1))+
+  geom_line(color  = 'bisque2')+
   geom_point()+
   theme(legend.position = 'none')+
   theme(axis.text = element_text(angle = 90))+
-  labs(title = 'Average Specific Conductance 2021', 
+  labs(title = 'Average Specific Conductance in Basin 3 (2021)', 
        subtitle = 'Average SP Conductance per Month', 
        y = 'Average SP Conductance (uS/cm)', 
        x = 'Month')
@@ -215,12 +222,12 @@ avgnitra <- sond_new %>%
 
 # Plot of average NitraLED mg/L per month 
 
-ggplot(data = avgnitra, aes(x = month, y = avgnitra))+
-  geom_col(fill = 'aquamarine3')+
+ggplot(data = avgnitra, aes(x = month, y = avgnitra, group= 1))+
+  geom_line(color  = 'aquamarine3')+
   geom_point()+
   theme(legend.position = 'none')+
   theme(axis.text = element_text(angle = 90))+
-  labs(title = 'Average NitraLED 2021', 
+  labs(title = 'Average NitraLED in Basin 3 (2021)', 
        subtitle = 'Average NitraLED per Month', 
        y = 'Average NitraLED mg/L', 
        x = 'Month')
@@ -241,13 +248,15 @@ avgtemp <- sond_new %>%
 
 # Plot of average temperature (basin 3)
 
-ggplot(data = avgtemp, aes(x = month, y = avgtemp))+
-  geom_col(fill = 'darkorchid1')+
+ggplot(data = avgtemp, aes(x = month, y = avgtemp, group = 1))+
+  geom_line(color = 'darkorchid1')+
+  geom_point()+
  theme(legend.position = 'none')+
   theme(axis.text = element_text(angle = 90))+
-  labs(title = 'Average Temperature 2021', 
+  labs(title = 'Average Temperature in Basin 3 (2021)', 
        subtitle = 'Average Temperature per Month', 
        y = 'Average Temperature (C)', 
        x = 'Month')
-       
-       #nah son
+# done now
+
+
