@@ -96,7 +96,8 @@ ui <- dashboardPage(skin = 'black',
   sidebar <-dashboardSidebar( 
     sidebarMenu(
       menuItem("Dashboard", tabName = "dashboard", icon = icon("th")),
-      menuItem("Plots", tabName = "plots1", icon = icon("th"))
+      menuItem("Trends", tabName = "trends", icon = icon("th")),
+      menuItem("Boxplots", tabName = 'boxplots', icon = icon("th"))
       
     )
   ),
@@ -130,7 +131,18 @@ ui <- dashboardPage(skin = 'black',
                 )
                 )
              ),
-      tabItem(tabName = "plots1",
+      tabItem(tabName = "trends",
+              fluidRow(
+                box(
+                  title = "Select:",
+                  background = "black",
+                  collapsible = TRUE,
+                  
+                  solidHeader = TRUE,
+                  
+                  ))),
+                
+      tabItem(tabName = "boxplots",
               fluidRow(
                 box(plotOutput("avg_boxplot")),
                 
@@ -177,7 +189,11 @@ server <- function(input, output) {
     
     ggplot(data = new_df)+
       geom_col(aes(variable, avg, fill = `Site Name`), position = "dodge")+
-      theme(axis.text = element_text(angle = 90))
+      theme(axis.text = element_text(angle = 90))+
+      labs(x = "Variable",
+           y = "Monthly Average",
+           title = "Variable Averages by Month")+
+      scale_fill_manual(values = c("dark green", "blue"))
    
   })
   
@@ -190,7 +206,11 @@ server <- function(input, output) {
       filter(variable == input$variable)%>%
       summarise(avg = mean(as.numeric(value), na.rm = TRUE))
     ggplot(data = avg_vari_site)+
-      geom_col(aes(month, avg, fill = `Site Name`), position = "dodge")
+      geom_col(aes(month, avg, fill = `Site Name`), position = "dodge")+
+      labs(x = "Month",
+           y = "Average",
+           title = "Variable Average by Month")+
+      scale_fill_manual(values = c("dark green", "blue"))
   })
   
   
