@@ -3,6 +3,7 @@ library(shiny)
 library(tidyverse)
 library(gsheet)
 library(lubridate)
+library(readxl)
 
 #Valid colors are: red, yellow, aqua, blue, light-blue, 
 #green, navy, teal, olive, lime, orange, fuchsia, purple, maroon, black
@@ -97,7 +98,8 @@ ui <- dashboardPage(skin = 'black',
     sidebarMenu(
       menuItem("Dashboard", tabName = "dashboard", icon = icon("th")),
       menuItem("Trends", tabName = "trends", icon = icon("th")),
-      menuItem("Boxplots", tabName = 'boxplots', icon = icon("th"))
+      menuItem("Boxplots", tabName = 'boxplots', icon = icon("th")),
+      menuItem('Predictive Models', tabName = "models", icon = icon("th"))
       
     )
   ),
@@ -108,15 +110,16 @@ ui <- dashboardPage(skin = 'black',
       # First tab content
       tabItem(tabName = "dashboard",
               fluidRow(
-                box(plotOutput("sond_cond")),
-                box(plotOutput("avg_vari_site")),
+                box(plotOutput("sond_cond"),
+                    background = "navy"),
+                box(plotOutput("avg_vari_site"),
+                    background = "navy"),
                 
                 
                 box(
                   title = "Select:",
-                  background = "black",
+                  background = "navy",
                   collapsible = TRUE,
-                  select = "success",
                   solidHeader = TRUE,
                   selectInput("month", "Month",
                               choices = c("January", "February", "March",
@@ -133,24 +136,61 @@ ui <- dashboardPage(skin = 'black',
              ),
       tabItem(tabName = "trends",
               fluidRow(
+                box(plotOutput("trend_data"),
+                    background = "blue"),
+                box(plotOutput("trend_data2"),
+                    background = "maroon"),
                 box(
-                  title = "Select:",
-                  background = "black",
+                  title = "Select Monthly:",
+                  background = "blue",
                   collapsible = TRUE,
                   
                   solidHeader = TRUE,
                   
-                  ))),
+                  selectInput("year4", "Year",
+                              choices = c("2020", "2021")),
+                  selectInput("site4", "Site" ,
+                              choices = c("Wetland Basin 3", "Lagoon C")),
+                  selectInput("variable4", "Variable",
+                              choices = c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
+                                          "Temp °C", "NH4+ -N mg/L", "NH3 mg/L"))
+                  
+                  ),
+                box(
+                  title = "Select Daily:",
+                  background = "maroon",
+                  collapsible = TRUE,
+                  solidHeader = TRUE,
+                  
+                  selectInput("year5", "Year",
+                              choices = c("2020", "2021")),
+                  selectInput("site5", "Site" ,
+                              choices = c("Wetland Basin 3", "Lagoon C")),
+                  selectInput("variable5", "Variable",
+                              choices = c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
+                                          "Temp °C", "NH4+ -N mg/L", "NH3 mg/L")),
+                  selectInput( "month5", "Month",
+                               multiple = TRUE,
+                               choices = c("January", "February", "March",
+                                           "April", "May", "June", "July", "August", "September", "October",
+                                           "November", "December")
+                     )
+                  
+                )
+                
+                
+                )),
                 
       tabItem(tabName = "boxplots",
               fluidRow(
-                box(plotOutput("avg_boxplot")),
+                box(
+                  plotOutput("avg_boxplot"),
+                  background = "teal"),
                 
                 box(
                   title = "Select:",
-                  background = "black",
+                  background = "teal",
                   collapsible = TRUE,
-                
                   solidHeader = TRUE,
                   selectInput("year2", "Year",
                               choices = c("2020", "2021")),
@@ -159,7 +199,26 @@ ui <- dashboardPage(skin = 'black',
                   selectInput("variable2", "Variable",
                               choices = c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
                                           "Temp °C", "NH4+ -N mg/L", "NH3 mg/L"))
-      )) )
+      )) ),
+      
+      tabItem(tabName = "models",
+              fluidRow(
+                box(plotOutput("predic_model"),
+                    background = "purple"),
+                box(
+                  title = "Select:",
+                  background = "purple",
+                  collapsible = TRUE,
+                  
+                  solidHeader = TRUE,
+                  
+                  selectInput("sitename3", "Site" ,
+                              choices = c("Wetland Basin 3", "Lagoon C")),
+                  selectInput("variable3", "Variable",
+                              choices = c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
+                                          "Temp °C", "NH4+ -N mg/L", "NH3 mg/L"))
+                  
+                )))
       
       
       )))
@@ -193,7 +252,7 @@ server <- function(input, output) {
       labs(x = "Variable",
            y = "Monthly Average",
            title = "Variable Averages by Month")+
-      scale_fill_manual(values = c("dark green", "blue"))
+      scale_fill_manual(values = c("purple", "yellow"))
    
   })
   
@@ -213,6 +272,45 @@ server <- function(input, output) {
       scale_fill_manual(values = c("dark green", "blue"))
   })
   
+  output$trend_data <- renderPlot({  
+ 
+    # month trends
+    month_trend<-all_data%>%
+      group_by(month)%>%
+      filter(year == input$year4)%>%
+      filter(variable == input$variable4)%>%
+      summarise(avg_month = mean(as.numeric(value)))%>%
+      mutate(month = factor(month,
+                            levels = c("January", "February", "March",
+                                       "April", "May", "June", "July", "August", "September", "October",
+                                       "November", "December")))
+    
+    ggplot(data = month_trend, aes(month, avg_month))+
+      geom_line(group = 1)+
+      theme(axis.text.x = element_text(angle = 90))
+  })
+
+    output$trend_data2 <- renderPlot({    
+   # daily trends
+    daily_all_data <- all_data %>%
+      mutate(days = day(Date))
+    avgDay <- daily_all_data %>%
+      group_by(month, days) %>%
+      filter(year == input$year5) %>%
+      filter(month %in% input$month5) %>%
+      filter(`Site Name` == input$site5)%>%
+      filter(variable == input$variable5) %>%
+      summarise(meanVar = mean(as.numeric(value)))
+    ggplot(data = avgDay, aes(x = days, y =meanVar, color = month))+
+      geom_point()+
+      geom_line()+
+      scale_y_continuous(breaks = seq(0,40,2))+
+      scale_x_continuous(breaks = seq(0,30,2))
+    
+    
+    
+  })
+  
   
   output$avg_boxplot <- renderPlot({  
     avg_boxplot <- all_data %>%
@@ -225,6 +323,34 @@ server <- function(input, output) {
       geom_boxplot()+
       theme(axis.text = element_text(angle = 90))
   })
+  
+  output$predic_model <- renderPlot({
+    
+    avg_boxplot <- all_data %>%
+      filter(`Site Name` == input$sitename3)%>%
+      filter(variable == input$variable3)
+    # code for for predictive model for turbidity
+    avg_predict <- avg_boxplot %>%
+      filter( year == 2021 ) %>% 
+      group_by( month ) %>% 
+      summarize(avg = mean(as.numeric(value)))
+    
+    
+    # predictive model using year 2021
+    ggplot( data = avg_boxplot, aes( x= (month), y = as.numeric(value)))+
+      geom_point()+
+      theme(axis.text.x = element_text(angle = 90))+
+      labs(title = 'Predictive Models of Variables',
+           subtitle = 'Predictive Models Using 2021',
+           y = 'Units',
+           x = 'Months')+
+      geom_point(data = avg_predict, aes(x = month, y = avg), 
+                 size = 2, color = 'red')+
+      geom_line(data = avg_predict, aes(x = month, y = avg), 
+                size = 0.5, color = 'blue', group =1)
+  })
+  
+  
 }
 
 shinyApp(ui, server)
