@@ -298,7 +298,7 @@ server <- function(input, output) {
       geom_col(aes(variable, avg, fill = `Site Name`), position = "dodge")+
       theme(axis.text = element_text(angle = 90))+
       labs(x = "Variable",
-           y = "Monthly Average",
+           y = "Units",
            title = "Variable Averages by Month")+
       scale_fill_manual(values = c("navy", "darkseagreen4"))
    
@@ -315,8 +315,8 @@ server <- function(input, output) {
     ggplot(data = avg_vari_site)+
       geom_col(aes(month, avg, fill = `Site Name`), position = "dodge")+
       labs(x = "Month",
-           y = "Average",
-           title = "Variable Average by Month")+
+           y = "Unit",
+           title = "Specified Variable Average by Month")+
       scale_fill_manual(values = c("navy", "darkseagreen4"))
   })
   
@@ -336,7 +336,10 @@ server <- function(input, output) {
     ggplot(data = month_trend, aes(month, avg_month))+
       geom_point()+
       geom_line(group = 1)+
-      theme(axis.text.x = element_text(angle = 90))
+      theme(axis.text.x = element_text(angle = 90))+
+      labs(title = "Monthly Trends",
+           x = "Month",
+           y = "Units")
   })
 
     output$trend_data2 <- renderPlot({    
@@ -355,7 +358,10 @@ server <- function(input, output) {
       geom_point()+
       geom_line()+
       scale_y_continuous(breaks = seq(0,40,2))+
-      scale_x_continuous(breaks = seq(0,30,2))
+      scale_x_continuous(breaks = seq(0,30,2))+
+      labs(title = "Daily Trends",
+           x = "Day of the Month",
+           y = "Units")
     
     
     
@@ -372,7 +378,10 @@ server <- function(input, output) {
       
       ggplot(data = time_attempt, aes(x=hour, y=as.numeric(value), color = factor(Date)))+
         geom_point()+
-        geom_line()
+        geom_line()+
+        labs(title = "Hourly Trends",
+             x = "Hour of the Day",
+             y = "Units")
       
       
       
@@ -387,7 +396,10 @@ server <- function(input, output) {
     ggplot(data = avg_boxplot, 
            aes(x = month, y = as.numeric(value)))+
       geom_boxplot()+
-      theme(axis.text = element_text(angle = 90))
+      theme(axis.text = element_text(angle = 90))+
+      labs(title = "Variable Variation by Month",
+           x = "Month",
+           y = "Units")
   })
   
   output$predic_model <- renderPlot({
