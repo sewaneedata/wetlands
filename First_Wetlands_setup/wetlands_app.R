@@ -4,6 +4,8 @@ library(tidyverse)
 library(gsheet)
 library(lubridate)
 library(readxl)
+#install.packages("shinyWidgets")
+library(shinyWidgets)
 
 #Valid colors are: red, yellow, aqua, blue, light-blue, 
 #green, navy, teal, olive, lime, orange, fuchsia, purple, maroon, black
@@ -90,6 +92,19 @@ lagoonC2<-lagoonC2%>%
 all_data<-rbind(lagoonC2, sond2)
 
 
+######### make a vector
+possible_dates<-seq(min(ymd(all_data$Date), na.rm =TRUE), max(ymd(all_data$Date), na.rm =TRUE), by = "day")
+
+dates_we_have<- all_data$Date%>%
+  unique()%>%
+  ymd()%>%
+  na.omit()
+
+keeps<-which(!possible_dates%in%dates_we_have)
+
+dates_to_disable<-possible_dates[keeps]
+
+
 ############################## UI
 ui <- dashboardPage(skin = 'black',
   dashboardHeader(title = h4("Sewanee Wetlands")),
@@ -110,12 +125,13 @@ ui <- dashboardPage(skin = 'black',
       # First tab content
       tabItem(tabName = "dashboard",
               fluidRow(
-                box(plotOutput("sond_cond"),
-                    background = "navy"),
-                box(plotOutput("avg_vari_site"),
+                box(width = 12, plotOutput("sond_cond"),
+                    background = "navy")),
+              fluidRow(
+                 box(plotOutput("avg_vari_site"),
                     background = "navy"),
                 
-                
+              
                 box(
                   title = "Select:",
                   background = "navy",
@@ -127,7 +143,8 @@ ui <- dashboardPage(skin = 'black',
                                           "November", "December")),
                   
                   selectInput("year", "Year" ,
-                              choices = c("2020", "2021")),
+                              choices = c("2020", "2021"),
+                              selected = "2021"),
                   selectInput("variable", "Variable",
                               choices = c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
                                           "Temp °C", "NH4+ -N mg/L", "NH3 mg/L"))
@@ -138,8 +155,7 @@ ui <- dashboardPage(skin = 'black',
               fluidRow(
                 box(plotOutput("trend_data"),
                     background = "blue"),
-                box(plotOutput("trend_data2"),
-                    background = "maroon"),
+                
                 box(
                   title = "Select Monthly:",
                   background = "blue",
@@ -155,7 +171,11 @@ ui <- dashboardPage(skin = 'black',
                               choices = c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
                                           "Temp °C", "NH4+ -N mg/L", "NH3 mg/L"))
                   
-                  ),
+                  )),
+                fluidRow(
+                box(plotOutput("trend_data2"),
+                    background = "maroon"),
+                
                 box(
                   title = "Select Daily:",
                   background = "maroon",
@@ -163,7 +183,8 @@ ui <- dashboardPage(skin = 'black',
                   solidHeader = TRUE,
                   
                   selectInput("year5", "Year",
-                              choices = c("2020", "2021")),
+                              choices = c("2020", "2021"),
+                              selected = "2021"),
                   selectInput("site5", "Site" ,
                               choices = c("Wetland Basin 3", "Lagoon C")),
                   selectInput("variable5", "Variable",
@@ -173,10 +194,37 @@ ui <- dashboardPage(skin = 'black',
                                multiple = TRUE,
                                choices = c("January", "February", "March",
                                            "April", "May", "June", "July", "August", "September", "October",
-                                           "November", "December")
-                     )
+                                           "November", "December"),
+                               selected = "January"
+                              
+                     ))
                   
-                )
+                ),
+                
+               fluidRow(
+                box(plotOutput("trend_data3"),
+                    background = "olive"),
+                box(
+                  title = "Select Hourly:",
+                  background = "olive",
+                  collapsible = TRUE,
+                  solidHeader = TRUE,
+                  
+                  selectInput("site6", "Site" ,
+                              choices = c("Wetland Basin 3", "Lagoon C")),
+                  selectInput("variable6", "Variable",
+                              choices = c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
+                                          "Temp °C", "NH4+ -N mg/L", "NH3 mg/L")),
+                  airDatepickerInput("date6", "Date", 
+                            minDate  = (min(ymd(all_data$Date), na.rm =TRUE)),
+                            maxDate = (max(ymd(all_data$Date), na.rm =TRUE)),
+                            disabledDates = dates_to_disable,
+                            multiple = TRUE,
+                            value = "2021-10-19")
+                                   
+                  )
+                  
+                
                 
                 
                 )),
@@ -252,7 +300,7 @@ server <- function(input, output) {
       labs(x = "Variable",
            y = "Monthly Average",
            title = "Variable Averages by Month")+
-      scale_fill_manual(values = c("purple", "yellow"))
+      scale_fill_manual(values = c("navy", "darkseagreen4"))
    
   })
   
@@ -269,7 +317,7 @@ server <- function(input, output) {
       labs(x = "Month",
            y = "Average",
            title = "Variable Average by Month")+
-      scale_fill_manual(values = c("dark green", "blue"))
+      scale_fill_manual(values = c("navy", "darkseagreen4"))
   })
   
   output$trend_data <- renderPlot({  
@@ -286,12 +334,14 @@ server <- function(input, output) {
                                        "November", "December")))
     
     ggplot(data = month_trend, aes(month, avg_month))+
+      geom_point()+
       geom_line(group = 1)+
       theme(axis.text.x = element_text(angle = 90))
   })
 
     output$trend_data2 <- renderPlot({    
-   # daily trends
+  
+       # daily trends
     daily_all_data <- all_data %>%
       mutate(days = day(Date))
     avgDay <- daily_all_data %>%
@@ -310,7 +360,23 @@ server <- function(input, output) {
     
     
   })
-  
+    output$trend_data3 <- renderPlot({    
+     
+       # hourly trends
+      time_attempt<-all_data %>%
+        mutate( hour = hour(`Time (HH:mm:ss)`)) %>%
+       # filter(year == input$year6)%>%
+        filter(variable == input$variable6)%>%
+        filter(Date %in% input$date6)%>%
+        filter(`Site Name` == input$site6) 
+      
+      ggplot(data = time_attempt, aes(x=hour, y=as.numeric(value), color = factor(Date)))+
+        geom_point()+
+        geom_line()
+      
+      
+      
+    })
   
   output$avg_boxplot <- renderPlot({  
     avg_boxplot <- all_data %>%
@@ -348,6 +414,7 @@ server <- function(input, output) {
                  size = 2, color = 'red')+
       geom_line(data = avg_predict, aes(x = month, y = avg), 
                 size = 0.5, color = 'blue', group =1)
+    
   })
   
   
