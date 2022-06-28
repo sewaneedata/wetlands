@@ -3,6 +3,9 @@ library(gsheet)
 library(lubridate)
 library(data.table)
 library(readxl)
+library(ggpubr)
+library(broom)
+library(AICcmodavg)
 
 url<-"https://docs.google.com/spreadsheets/d/14nn7NWMBatbzcz9nqcTFzQghmzMUE2o0/edit?usp=sharing&ouid=104854259661631892531&rtpof=true&sd=true"
 sud <-gsheet2tbl(url)
@@ -109,7 +112,7 @@ avg_turb <- avg_boxplot %>%
   filter(year == 2021) %>% 
   group_by(month) %>% 
 filter(variable =='Turbidity NTU') %>% 
-  filter(`Site Name` == 'Wetland Basin 3') %>% 
+  #filter(`Site Name` == 'Wetland Basin 3') %>% 
   summarise(avgturb = mean(as.numeric(value)))
 
 
@@ -129,11 +132,25 @@ ggplot(data = avg_boxplot, aes( x= (month), y = as.numeric(value)))+
   #ylim(0,125)
 
 
+# Anova Test
 
+summary(all_data)
 
- 
+ph_df <- all_data %>%
+  filter(  variable == "pH" ) %>%
+  rename( "Site" = `Site Name`) %>%
+  mutate( Site = factor(Site)) %>% 
+  na.omit()
+
+aov( value ~ Site + month, data = ph_df )
   
+turb_df <- all_data %>%
+  filter(  variable == 'Turbidity NTU' ) %>%
+  rename( "Site" = `Site Name`) %>%
+  mutate( Site = factor(Site)) %>% 
+  na.omit()
 
+aov( value ~ Site + month, data = turb_df )
 
       
   
