@@ -5,8 +5,7 @@ library(ggplot2)
 
 url<-"https://docs.google.com/spreadsheets/d/14nn7NWMBatbzcz9nqcTFzQghmzMUE2o0/edit?usp=sharing&ouid=104854259661631892531&rtpof=true&sd=true"
 sud <-gsheet2tbl(url)
-url2 <- 'https://docs.google.com/spreadsheets/d/1WdrZuZP9J6Im4KQdo6MudPQC4Fwf13rD/edit?usp=sharing&ouid=104854259661631892531&rtpof=true&sd=true'
-sond<-gsheet2tbl(url2)
+
 ###############################################
 names(sond)
 max(sond$`Date (MM/DD/YYYY)`)
@@ -258,5 +257,19 @@ ggplot(data = avgtemp, aes(x = month, y = avgtemp, group = 1))+
        y = 'Average Temperature (C)', 
        x = 'Month')
 # done now
+
+################################# rainfall doc
+
+
+
+
+
+
+
+
+
+
+
+
 
 
