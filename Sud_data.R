@@ -29,6 +29,10 @@ sud<-sud2%>%
 sud3 <- sud2 %>% 
   select(Date, `Timestamp*`, `Air temp Avg (C)`, `Air Temp Max (C)`,`Air Temp Min`, `Solar Total (MJ/m²)` )
 
+sud3<-sud3 %>% rename(Dates=Date) %>% rename(Time=`Timestamp*`) %>% 
+  rename(air_temp_avg_C = `Air temp Avg (C)`) %>% rename(air_temp_max_C = `Air Temp Max (C)`) %>% 
+  rename(air_temp_min_C = `Air Temp Min`)
+
 sud3 <- sud3 %>% 
   mutate(year = year(Dates))
 sud3 <- sud3 %>% 
@@ -52,10 +56,15 @@ avgC <- sud3 %>%
                         "10" = 'October', 
                         "11" = 'November', 
                         "12" = 'December'))
+# average air temperature graph
 ggplot(data = avgC, aes(x = months, y = avgC))+
-  geom_point()+
-  geom_line(group=1)+
-  theme(axis.text.x  = element_text(angle = 90))
+  geom_point(color = 'blue')+
+  geom_line(group=1, color = 'blue')+
+  theme(axis.text.x  = element_text(angle = 90))+
+  labs(title = 'Average Air Temperature 2021',
+       subtitle= 'Air Temperature in Celsius by Month',
+       y = 'Average Air Temperature (C)',
+       x = 'Months')
 
 
 
