@@ -111,10 +111,10 @@ ui <- dashboardPage(skin = 'black',
   ## Sidebar content
   sidebar <-dashboardSidebar( 
     sidebarMenu(
-      menuItem("Dashboard", tabName = "dashboard", icon = icon("th")),
-      menuItem("Trends", tabName = "trends", icon = icon("th")),
-      menuItem("Boxplots", tabName = 'boxplots', icon = icon("th")),
-      menuItem('Predictive Models', tabName = "models", icon = icon("th"))
+      menuItem("Water Quality Comparison", tabName = "dashboard", icon = icon("th")),
+      menuItem("Trends", tabName = "trends", icon = icon("list-alt")),
+      menuItem("Boxplots", tabName = 'boxplots', icon = icon("bar-chart-o")),
+      menuItem('Predictive Models', tabName = "models", icon = icon("table"))
       
     )
   ),
@@ -125,14 +125,19 @@ ui <- dashboardPage(skin = 'black',
       # First tab content
       tabItem(tabName = "dashboard",
               fluidRow(
-                box(width = 12, plotOutput("sond_cond"),
+                box(title = "Variable Averages by Month",
+                    solidHeader = TRUE,
+                    width = 12, 
+                    plotOutput("sond_cond"),
                     background = "navy")),
-              fluidRow(
-                 box(plotOutput("avg_vari_site"),
+              fluidRow( 
+                 box(title = "Specified Variable Average by Month",
+                     solidHeader = TRUE,
+                   plotOutput("avg_vari_site"),
                     background = "navy"),
                 
               
-                box(
+                box( 
                   title = "Select:",
                   background = "navy",
                   collapsible = TRUE,
@@ -153,7 +158,9 @@ ui <- dashboardPage(skin = 'black',
              ),
       tabItem(tabName = "trends",
               fluidRow(
-                box(plotOutput("trend_data"),
+                box(title = "Monthly Trends in Variables",
+                    solidHeader = TRUE,
+                  plotOutput("trend_data"),
                     background = "blue"),
                 
                 box(
@@ -173,7 +180,9 @@ ui <- dashboardPage(skin = 'black',
                   
                   )),
                 fluidRow(
-                box(plotOutput("trend_data2"),
+                box(title = "Daily Trends in Variables",
+                    solidHeader = TRUE,
+                  plotOutput("trend_data2"),
                     background = "maroon"),
                 
                 box(
@@ -202,7 +211,9 @@ ui <- dashboardPage(skin = 'black',
                 ),
                 
                fluidRow(
-                box(plotOutput("trend_data3"),
+                box(title = "Hourly Trends in Variables",
+                    solidHeader = TRUE,
+                  plotOutput("trend_data3"),
                     background = "olive"),
                 box(
                   title = "Select Hourly:",
@@ -231,7 +242,8 @@ ui <- dashboardPage(skin = 'black',
                 
       tabItem(tabName = "boxplots",
               fluidRow(
-                box(
+                box(title = "Varience of Variables by Month",
+                    solidHeader = TRUE,
                   plotOutput("avg_boxplot"),
                   background = "teal"),
                 
@@ -251,7 +263,9 @@ ui <- dashboardPage(skin = 'black',
       
       tabItem(tabName = "models",
               fluidRow(
-                box(plotOutput("predic_model"),
+                box(title = "Predictive Models Using 2021 Data",
+                    solidHeader = TRUE,
+                  plotOutput("predic_model"),
                     background = "purple"),
                 box(
                   title = "Select:",
@@ -298,8 +312,7 @@ server <- function(input, output) {
       geom_col(aes(variable, avg, fill = `Site Name`), position = "dodge")+
       theme(axis.text = element_text(angle = 90))+
       labs(x = "Variable",
-           y = "Units",
-           title = "Variable Averages by Month")+
+           y = "Units")+
       scale_fill_manual(values = c("navy", "darkseagreen4"))
    
   })
@@ -315,8 +328,7 @@ server <- function(input, output) {
     ggplot(data = avg_vari_site)+
       geom_col(aes(month, avg, fill = `Site Name`), position = "dodge")+
       labs(x = "Month",
-           y = "Unit",
-           title = "Specified Variable Average by Month")+
+           y = "Unit")+
       scale_fill_manual(values = c("navy", "darkseagreen4"))
   })
   
@@ -337,8 +349,7 @@ server <- function(input, output) {
       geom_point()+
       geom_line(group = 1)+
       theme(axis.text.x = element_text(angle = 90))+
-      labs(title = "Monthly Trends",
-           x = "Month",
+      labs(x = "Month",
            y = "Units")
   })
 
@@ -359,8 +370,7 @@ server <- function(input, output) {
       geom_line()+
       scale_y_continuous(breaks = seq(0,40,2))+
       scale_x_continuous(breaks = seq(0,30,2))+
-      labs(title = "Daily Trends",
-           x = "Day of the Month",
+      labs(x = "Day of the Month",
            y = "Units")
     
     
@@ -379,9 +389,9 @@ server <- function(input, output) {
       ggplot(data = time_attempt, aes(x=hour, y=as.numeric(value), color = factor(Date)))+
         geom_point()+
         geom_line()+
-        labs(title = "Hourly Trends",
-             x = "Hour of the Day",
-             y = "Units")
+        labs(x = "Hour of the Day",
+             y = "Units",
+             color = "Date")
       
       
       
@@ -397,8 +407,7 @@ server <- function(input, output) {
            aes(x = month, y = as.numeric(value)))+
       geom_boxplot()+
       theme(axis.text = element_text(angle = 90))+
-      labs(title = "Variable Variation by Month",
-           x = "Month",
+      labs(x = "Month",
            y = "Units")
   })
   
@@ -418,8 +427,7 @@ server <- function(input, output) {
     ggplot( data = avg_boxplot, aes( x= (month), y = as.numeric(value)))+
       geom_point()+
       theme(axis.text.x = element_text(angle = 90))+
-      labs(title = 'Predictive Models of Variables',
-           subtitle = 'Predictive Models Using 2021',
+      labs(
            y = 'Units',
            x = 'Months')+
       geom_point(data = avg_predict, aes(x = month, y = avg), 
