@@ -156,6 +156,7 @@ ui <- dashboardPage(skin = 'black',
                 )
                 )
              ),
+      # TRENDS TAB
       tabItem(tabName = "trends",
               fluidRow(
                 box(title = "Monthly Trends in Variables",
@@ -239,7 +240,7 @@ ui <- dashboardPage(skin = 'black',
                 
                 
                 )),
-                
+                ################################## BOXPLOTS TAB #############################
       tabItem(tabName = "boxplots",
               fluidRow(
                 box(title = "Varience of Variables by Month",
@@ -260,7 +261,7 @@ ui <- dashboardPage(skin = 'black',
                               choices = c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
                                           "Temp °C", "NH4+ -N mg/L", "NH3 mg/L"))
       )) ),
-      
+      ############################ MODELS TAB ############################################
       tabItem(tabName = "models",
               fluidRow(
                 box(title = "Predictive Models Using 2021 Data",
@@ -287,7 +288,7 @@ ui <- dashboardPage(skin = 'black',
       
     # Boxes need to be put in a row (or column)
       
-
+####### SERVER ###########################
 server <- function(input, output) {
   set.seed(122)
   histdata <- rnorm(500)
@@ -334,7 +335,7 @@ server <- function(input, output) {
   
   output$trend_data <- renderPlot({  
  
-    # month trends
+    ############################## month trends
     month_trend<-all_data%>%
       group_by(month)%>%
       filter(year == input$year4)%>%
@@ -355,7 +356,7 @@ server <- function(input, output) {
 
     output$trend_data2 <- renderPlot({    
   
-       # daily trends
+       ################################# daily trends
     daily_all_data <- all_data %>%
       mutate(days = day(Date))
     avgDay <- daily_all_data %>%
@@ -378,7 +379,7 @@ server <- function(input, output) {
   })
     output$trend_data3 <- renderPlot({    
      
-       # hourly trends
+       ######################################## hourly trends
       time_attempt<-all_data %>%
         mutate( hour = hour(`Time (HH:mm:ss)`)) %>%
        # filter(year == input$year6)%>%
@@ -394,9 +395,10 @@ server <- function(input, output) {
              color = "Date")
       
       
-      
+    
     })
   
+    ##################################################################### 
   output$avg_boxplot <- renderPlot({  
     avg_boxplot <- all_data %>%
       filter(year == input$year2) %>%
@@ -410,7 +412,7 @@ server <- function(input, output) {
       labs(x = "Month",
            y = "Units")
   })
-  
+    #####################################################################  
   output$predic_model <- renderPlot({
     
     avg_boxplot <- all_data %>%
@@ -422,7 +424,7 @@ server <- function(input, output) {
       group_by( month ) %>% 
       summarize(avg = mean(as.numeric(value)))
     
-    
+    #####################################################################   
     # predictive model using year 2021
     ggplot( data = avg_boxplot, aes( x= (month), y = as.numeric(value)))+
       geom_point()+
