@@ -9,6 +9,10 @@ library(AICcmodavg)
 
 url<-"https://docs.google.com/spreadsheets/d/14nn7NWMBatbzcz9nqcTFzQghmzMUE2o0/edit?usp=sharing&ouid=104854259661631892531&rtpof=true&sd=true"
 sud <-gsheet2tbl(url)
+url4 <-"https://docs.google.com/spreadsheets/d/1A_ljZAZmiRBsW5iL40EGRlVG1LkMa_w_7rqCnwAFWKA/edit#gid=537305485"
+rainfall_df<-gsheet2tbl(url4)
+rainfall_df
+
 
 sud<-sud%>%
   rename(Date = `Date Values Reflect`)
@@ -65,9 +69,37 @@ ggplot(data = avgC, aes(x = months, y = avgC))+
        subtitle= 'Air Temperature in Celsius by Month',
        y = 'Average Air Temperature (C)',
        x = 'Months')
+###########################################################
+####################
+# Precipitation and Temp data 
+
+# select the columns 
+
+rainfalldf1<- rainfalldf1 %>% 
+  select(Date, `High temp (F)`, `Low temp (F)`, `rainfall (inches)`)
+
+# remove titles within data set
+
+rainfalldf1 <- rainfall_df %>% 
+  filter(Date != 'Date') %>%
+  drop_na( Year )
+
+#reformat datasets
+
+rainfalldf1 <- rainfalldf1 %>%
+  unite( col=Date, Year:Date, sep="-") %>%
+  mutate( Month = month.abb[month( ydm(Date)) ] )
+
+# make a year column 
+
+rainfalldf1 <- rainfalldf1 %>% 
+  mutate(years = year(ydm(Date)))
 
 
-
+rainfalldf1 %>% 
+  group_by(Month) %>% 
+  filter()
+  
 
 
 
