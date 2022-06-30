@@ -22,7 +22,8 @@ sud<-sud%>%
   rename(Date = `Date Values Reflect`)
 
 sud<-sud %>%
-  filter(Date != "MISSING DATA" | Date != "NO POWER - AERATOR INSTALL")
+  filter(Date != "MISSING DATA" | Date != "NO POWER - AERATOR INSTALL") 
+
 
 library(lubridate)
 sud2 <- sud
