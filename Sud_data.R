@@ -6,12 +6,13 @@ library(readxl)
 library(ggpubr)
 library(broom)
 library(AICcmodavg)
+library(dplyr)
 
 url<-"https://docs.google.com/spreadsheets/d/14nn7NWMBatbzcz9nqcTFzQghmzMUE2o0/edit?usp=sharing&ouid=104854259661631892531&rtpof=true&sd=true"
 sud <-gsheet2tbl(url)
 url4 <-"https://docs.google.com/spreadsheets/d/1A_ljZAZmiRBsW5iL40EGRlVG1LkMa_w_7rqCnwAFWKA/edit#gid=537305485"
-rainfall_df<-gsheet2tbl(url4)
-rainfall_df
+rainfalldf<-gsheet2tbl(url4)
+rainfalldf
 
 
 sud<-sud%>%
@@ -72,34 +73,109 @@ ggplot(data = avgC, aes(x = months, y = avgC))+
 ###########################################################
 ####################
 # Precipitation and Temp data 
-
-# select the columns 
-
-rainfalldf1<- rainfalldf1 %>% 
-  select(Date, `High temp (F)`, `Low temp (F)`, `rainfall (inches)`)
-
+rainfalldf1 <- rainfalldf
 # remove titles within data set
 
-rainfalldf1 <- rainfall_df %>% 
-  filter(Date != 'Date') %>%
-  drop_na( Year )
+      #rainfalldf1 <- rainfalldf1 %>% 
+      #filter(Date != 'Date') %>%
+      #drop_na( Year )
 
-#reformat datasets
+# month collumn
+rainfalldf1 <- rainfalldf %>% 
+  filter(!is.na(Date)) %>%
+  unite( col=Date, Year:Date, sep="-") 
+  #mutate( Month = month.abb[month( as_date(Date)) ] )
 
-rainfalldf1 <- rainfalldf1 %>%
-  unite( col=Date, Year:Date, sep="-") %>%
-  mutate( Month = month.abb[month( ydm(Date)) ] )
-
-# make a year column 
-
+#reformat datasets because date was not matche up with the year
+ rainfalldf1 <-rainfalldf1 %>%
+   mutate(dates = c(rainfalldf1$Date[1:369] %>% ydm(), rainfalldf1$Date[370:376] %>% ymd())) %>% 
+ mutate( Month = month.abb[month( as_date(dates)) ] )
+# select the columns needed
 rainfalldf1 <- rainfalldf1 %>% 
-  mutate(years = year(ydm(Date)))
+  select(dates, Date, Month, `High temp (F)`, `Low temp (F)`, `rainfall (inches)`)
 
 
-rainfalldf1 %>% 
+
+# avg max temp per month
+tempmax <- rainfalldf1 %>% 
+  mutate(Month = factor(Month,
+                        levels = c('Jan', 'Feb', 
+                                   'Mar', 
+                                   'Apr', 
+                                   'May', 'Jun', 
+                                   'Jul', 'Aug', 'Sep', 
+                                   'Oct', 'Nov', 'Dec'))) %>% 
   group_by(Month) %>% 
-  filter()
+  filter(year(dates) == 2021) %>% 
+  summarise(tempmax = mean(`High temp (F)`))
+
+# avg min temperature per month
+tempmin <- rainfalldf1 %>%
+  mutate(Month = factor(Month,
+                        levels = c('Jan', 'Feb', 
+                                   'Mar', 
+                                   'Apr', 
+                                   'May', 'Jun', 
+                                   'Jul', 'Aug', 'Sep', 
+                                   'Oct', 'Nov', 'Dec'))) %>% 
+  group_by(Month) %>% 
+  filter(year(dates) == 2021) %>% 
+  summarise(tempmin = mean(`Low temp (F)`)) 
+
+
+# total rainfall per month
+totalrain <- rainfalldf1 %>% 
+  mutate(Month = factor(Month,
+                        levels = c('Jan', 'Feb', 
+                                   'Mar', 
+                                   'Apr', 
+                                   'May', 'Jun', 
+                                   'Jul', 'Aug', 'Sep', 
+                                   'Oct', 'Nov', 'Dec'))) %>% 
+  group_by(Month) %>% 
+  filter(year(dates)==2021) %>% 
+  summarise(totalrain = sum(na.rm = TRUE,(`rainfall (inches)`)))
+
+# avg rainfall per month
+avgrain <- rainfalldf1 %>% 
+  mutate(Month = factor(Month,
+                        levels = c('Jan', 'Feb', 
+                                   'Mar', 
+                                   'Apr', 
+                                   'May', 'Jun', 
+                                   'Jul', 'Aug', 'Sep', 
+                                   'Oct', 'Nov', 'Dec'))) %>% 
+  group_by(Month) %>% 
+  filter(year(dates)==2021) %>% 
+  summarise(avgrain = mean(na.rm = TRUE,(`rainfall (inches)`)))
+
+# average temperature 
+ggplot()+
+  geom_col(data = tempmax, aes(x = Month, y = tempmax), fill= 'blue')+
+  geom_col(data = tempmin, aes(x = Month, y = tempmin), fill = 'red')+
+  theme(axis.text.x = element_text(angle = 90))+
+labs(title = 'Highest and Lowest Temperatures (2021)',
+     subtitle = 'Average Temperature (C) per Month ',
+     y = 'Average Temperature',
+     x = 'Months')
+
+# total rainfall
+ggplot()+
+  geom_col(data = totalrain, aes( x= Month, y = totalrain),fill  = 'skyblue1')+
+  labs(title = 'TotalRainfall (2021)',
+       subtitle = 'Total Rainfall (in) per Month ',
+       y = 'Total Rainfall (in)',
+       x = 'Months')
   
+
+# average rainfall per month
+ggplot()+  
+  geom_col(data = avgrain, aes(x = Month, y = avgrain), fill = 'skyblue1')+
+labs(title = 'Average Rainfall (2021)',
+     subtitle = 'Average Rainfall (in) per Month ',
+     y = 'Average Rainfall (in)',
+     x = 'Months')
+
 
 
 
