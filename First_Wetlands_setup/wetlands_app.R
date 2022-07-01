@@ -104,6 +104,24 @@ keeps<-which(!possible_dates%in%dates_we_have)
 
 dates_to_disable<-possible_dates[keeps]
 
+######## CHANGING THE COLOR BASED ON EPA STANDARDS
+head(all_data)
+
+all_data<-all_data %>% 
+  mutate(color = NA) %>% 
+  mutate(color = 
+           case_when(
+             variable == 'Cond µS/cm' & value > 200 & value < 0 ~ 'red',
+             variable == 'pH' & value > 8.5 & value < 6.5  ~ 'red',
+             variable == 'ODO mg/L' & value > 253 & value < 260 ~ 'red',
+             variable == 'NH3 mg/L' & value > 253 & value < 260 ~ 'red',
+             variable == 'Turbidity NTU' & value > .3 ~ 'red',
+             variable == 'NitraLED mg/L' & value > 10 ~ 'red',
+             variable == 'Temp °C' & value > 253 & value < 260 ~ 'red',
+             variable == 'NH4+ -N mg/L' & value > 253 & value < 260 ~ 'red',
+             variable == 'ORP mV' & value < -50 ~ 'red',
+             TRUE ~ 'green'
+           ))
 
 ############################## UI
 ui <- dashboardPage(skin = 'black',
@@ -307,14 +325,17 @@ server <- function(input, output) {
       group_by(`Site Name`, month, variable)%>%
       filter(year == input$year)%>%
       filter(month == input$month)%>%
-      summarise(avg = mean(as.numeric(value), na.rm = TRUE))
+      filter(variable %in% c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
+             "Temp °C", "NH4+ -N mg/L", "NH3 mg/L"))%>%
+      summarise(avg = mean(as.numeric(value), na.rm = TRUE), color = color)
     
     ggplot(data = new_df)+
-      geom_col(aes(variable, avg, fill = `Site Name`), position = "dodge")+
+      geom_col(aes(variable, avg, fill = color), position = "dodge")+
       theme(axis.text = element_text(angle = 90))+
       labs(x = "Variable",
            y = "Units")+
-      scale_fill_manual(values = c("navy", "darkseagreen4"))
+      scale_fill_manual(values = c(green = "darkgreen", red = "red"))+
+      facet_wrap(~`Site Name`)
    
   })
   
@@ -325,12 +346,13 @@ server <- function(input, output) {
       filter(year == input$year)%>%
       filter(month == input$month)%>%
       filter(variable == input$variable)%>%
-      summarise(avg = mean(as.numeric(value), na.rm = TRUE))
+      summarise(avg = mean(as.numeric(value), na.rm = TRUE), color = color)
     ggplot(data = avg_vari_site)+
-      geom_col(aes(month, avg, fill = `Site Name`), position = "dodge")+
+      geom_col(aes(month, avg, fill = color), position = "dodge")+
       labs(x = "Month",
            y = "Unit")+
-      scale_fill_manual(values = c("navy", "darkseagreen4"))
+      scale_fill_manual(values = c(green = "darkgreen", red = "red"))+
+      facet_wrap(~`Site Name`)
   })
   
   output$trend_data <- renderPlot({  
@@ -384,7 +406,7 @@ server <- function(input, output) {
         mutate( hour = hour(`Time (HH:mm:ss)`)) %>%
        # filter(year == input$year6)%>%
         filter(variable == input$variable6)%>%
-        filter(Date %in% input$date6)%>%
+        filter(Date %in% input$date6)%>% 
         filter(`Site Name` == input$site6) 
       
       ggplot(data = time_attempt, aes(x=hour, y=as.numeric(value), color = factor(Date)))+
