@@ -122,7 +122,12 @@ all_data<-all_data %>%
              variable == 'ORP mV' & value < -50 ~ 'red',
              TRUE ~ 'green'
            ))
-#################################### CHANGING THE FONT
+#################################### SUD DATA BEGINS -- CLEANING AND MODIFICATIONS
+
+
+
+##################################################################################################################
+
 
 
 ############################## UI
@@ -154,9 +159,12 @@ ui <- dashboardPage(skin = 'black',
               fluidRow(
                 tabBox(title = "DataLab Team",
                        id = "tabset1",
-                       tabPanel("tab1", "Tessa Shackleford"),
-                       tabPanel("tab2", "Lauren Hutchsion"),
-                       tabPanel("tab3", "Harrison Lowery")
+                       width = 12,
+                       tabPanel("Tessa Shackleford", "DataLab Team Member from Sewanee; Tennessee; Class of 2024; Environment and Sustainability; Sewanee: The University of South"),
+                       tabPanel("Lauren Hutchison", "DataLab Team Member from Aldie, Virginia,
+                                Class of 2022; Environment and Sustainability; Sewanee: The University of South"),
+                       tabPanel("Harrison Lowery", "DataLab Team Member from Homewood, Alabama;
+                                Class of 2024; English; Sewanee: The University of South")
                       
                 )
                 
