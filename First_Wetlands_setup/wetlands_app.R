@@ -122,6 +122,12 @@ all_data<-all_data %>%
              variable == 'ORP mV' & value < -50 ~ 'red',
              TRUE ~ 'green'
            ))
+#################################### CHANGING THE FONT
+www/custom.css <-.main-header.logo {
+  font-family: "Georgia", "Times", "Times New Roman", "serif";
+  font-weight: bold;
+  font-size: 24px;
+}
 
 ############################## UI
 ui <- dashboardPage(skin = 'black',
@@ -129,6 +135,7 @@ ui <- dashboardPage(skin = 'black',
   ## Sidebar content
   sidebar <-dashboardSidebar( 
     sidebarMenu(
+      menuItem("About the Project", tabName = "overview", icon = icon("water")),
       menuItem("Water Quality Comparison", tabName = "dashboard", icon = icon("th")),
       menuItem("Trends", tabName = "trends", icon = icon("list-alt")),
       menuItem("Boxplots", tabName = 'boxplots', icon = icon("bar-chart-o")),
@@ -141,6 +148,14 @@ ui <- dashboardPage(skin = 'black',
     tabItems(
       
       # First tab content
+      tabItem(tabName = "overview",
+              fluidRow(
+                box(title = "Overview",
+                    solidHeader = TRUE,
+                    width = 12,
+                    background = "orange")
+              )),
+      
       tabItem(tabName = "dashboard",
               fluidRow(
                 box(title = "Variable Averages by Month",
