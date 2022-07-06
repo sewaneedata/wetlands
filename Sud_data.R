@@ -286,7 +286,7 @@ meansd_tempmin <- rainfalldf1 %>%
 # plot of temp min
 ggplot()+  
   geom_col(data =meansd_tempmin, aes(x = Month, y = mean),
-           fill = 'blue', group = 1)+
+           fill = 'aquamarine3', group = 1)+
   geom_errorbar(data = meansd_tempmin, aes(x = Month, ymax = mean+sd, width = .1, ymin = mean))+
   labs(title = 'Temperature Min (2021)',
        subtitle = 'Temp Min (C) per Month ',
