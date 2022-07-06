@@ -123,11 +123,7 @@ all_data<-all_data %>%
              TRUE ~ 'green'
            ))
 #################################### CHANGING THE FONT
-www/custom.css <-.main-header.logo {
-  font-family: "Georgia", "Times", "Times New Roman", "serif";
-  font-weight: bold;
-  font-size: 24px;
-}
+
 
 ############################## UI
 ui <- dashboardPage(skin = 'black',
@@ -154,6 +150,16 @@ ui <- dashboardPage(skin = 'black',
                     solidHeader = TRUE,
                     width = 12,
                     background = "orange")
+              ),
+              fluidRow(
+                tabBox(title = "DataLab Team",
+                       id = "tabset1",
+                       tabPanel("tab1", "Tessa Shackleford"),
+                       tabPanel("tab2", "Lauren Hutchsion"),
+                       tabPanel("tab3", "Harrison Lowery")
+                      
+                )
+                
               )),
       
       tabItem(tabName = "dashboard",
