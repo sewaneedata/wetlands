@@ -12,6 +12,8 @@ url<-"https://docs.google.com/spreadsheets/d/14nn7NWMBatbzcz9nqcTFzQghmzMUE2o0/e
 sud <-gsheet2tbl(url)
 url4 <-"https://docs.google.com/spreadsheets/d/1A_ljZAZmiRBsW5iL40EGRlVG1LkMa_w_7rqCnwAFWKA/edit#gid=537305485"
 rainfalldf<-gsheet2tbl(url4)
+url2 <- ''
+
 rainfalldf
 
 
@@ -83,7 +85,7 @@ rainfalldf1 <- rainfalldf
 # month collumn
 rainfalldf1 <- rainfalldf %>% 
   filter(!is.na(Date)) %>%
-  unite( col=Date, Year:Date, sep="-") 
+  unite( col=Date, Year:Date, sep="-")
   #mutate( Month = month.abb[month( as_date(Date)) ] )
 
 #reformat datasets because date was not matche up with the year
@@ -149,7 +151,7 @@ avgrain <- rainfalldf1 %>%
   filter(year(dates)==2021) %>% 
   summarise(avgrain = mean(na.rm = TRUE,(`rainfall (inches)`)))
 
-# average temperature 
+# average temperature plot
 ggplot()+
   geom_col(data = tempmax, aes(x = Month, y = tempmax), fill= 'blue')+
   geom_col(data = tempmin, aes(x = Month, y = tempmin), fill = 'red')+
@@ -159,24 +161,87 @@ labs(title = 'Highest and Lowest Temperatures (2021)',
      y = 'Average Temperature',
      x = 'Months')
 
-# total rainfall
+# total rainfall plot
 ggplot()+
   geom_col(data = totalrain, aes( x= Month, y = totalrain),fill  = 'skyblue1')+
   labs(title = 'TotalRainfall (2021)',
        subtitle = 'Total Rainfall (in) per Month ',
        y = 'Total Rainfall (in)',
        x = 'Months')
-  
+rainfalldf1 <- rainfalldf1 %>% rename(rainfall = `rainfall (inches)`)
 
-# average rainfall per month
+# mean/sd/upper/lower for average rainfall
+mean_sdrain <- rainfalldf1 %>% 
+  mutate(Month = factor(Month,
+                        levels = c('Jan', 'Feb', 
+                                   'Mar', 
+                                   'Apr', 
+                                   'May', 'Jun', 
+                                   'Jul', 'Aug', 'Sep', 
+                                   'Oct', 'Nov', 'Dec'))) %>% 
+  group_by(Month) %>% 
+  summarise(mean = mean(rainfall, na.rm = TRUE), sd = sd(rainfall, na.rm = TRUE)) %>%           
+  mutate(lower = mean-sd, upper = mean+sd)
+
+
+
+# average rainfall per month plot
 ggplot()+  
-  geom_col(data = avgrain, aes(x = Month, y = avgrain), fill = 'skyblue1')+
-labs(title = 'Average Rainfall (2021)',
+  geom_col(data =mean_sdrain, aes(x = Month, y = mean),
+           fill = 'blue', group = 1)+
+  geom_errorbar(data = mean_sdrain, aes(x = Month, ymax = mean+sd, width = .1, ymin = mean))+
+  labs(title = 'Average Rainfall (2021)',
      subtitle = 'Average Rainfall (in) per Month ',
      y = 'Average Rainfall (in)',
      x = 'Months')
 
+# mean/sd/upper/lower for temp max
 
+meansd_tempmax <- rainfalldf1 %>% 
+  mutate(Month = factor(Month,
+                        levels = c('Jan', 'Feb', 
+                                   'Mar', 
+                                   'Apr', 
+                                   'May', 'Jun', 
+                                   'Jul', 'Aug', 'Sep', 
+                                   'Oct', 'Nov', 'Dec'))) %>% 
+  group_by(Month) %>% 
+  summarise(mean = mean(`High temp (F)`, na.rm = TRUE), sd = sd(`High temp (F)`, na.rm = TRUE)) %>%           
+  mutate(lower = mean-sd, upper = mean+sd)
+
+# plot of temp max 
+ggplot()+  
+  geom_col(data =meansd_tempmax, aes(x = Month, y = mean),
+           fill = 'blue', group = 1)+
+  geom_errorbar(data = meansd_tempmax, aes(x = Month, ymax = mean+sd, width = .1, ymin = mean))+
+  labs(title = 'Temperature Max (2021)',
+       subtitle = 'Temp Max (C) per Month ',
+       y = 'Average Temperature (C)',
+       x = 'Months')
+
+# mean/sd/upper/lower for temp max
+
+meansd_tempmin <- rainfalldf1 %>% 
+  mutate(Month = factor(Month,
+                        levels = c('Jan', 'Feb', 
+                                   'Mar', 
+                                   'Apr', 
+                                   'May', 'Jun', 
+                                   'Jul', 'Aug', 'Sep', 
+                                   'Oct', 'Nov', 'Dec'))) %>% 
+  group_by(Month) %>% 
+  summarise(mean = mean(`Low temp (F)`, na.rm = TRUE), sd = sd(`Low temp (F)`, na.rm = TRUE)) %>%           
+  mutate(lower = mean-sd, upper = mean+sd)
+
+# plot of temp min
+ggplot()+  
+  geom_col(data =meansd_tempmin, aes(x = Month, y = mean),
+           fill = 'blue', group = 1)+
+  geom_errorbar(data = meansd_tempmin, aes(x = Month, ymax = mean+sd, width = .1, ymin = mean))+
+  labs(title = 'Temperature Min (2021)',
+       subtitle = 'Temp Min (C) per Month ',
+       y = 'Average Min Temperature (C)',
+       x = 'Months')
 
 
 
