@@ -48,7 +48,7 @@ sud3 <- sud3 %>%
 
 #######################################
 
-# avg air temp 
+# avg air temp           ###### NO
 avgC <- sud3 %>% 
   filter(year == 2021) %>% 
   filter(air_temp_avg_C >= 0) %>% 
@@ -67,7 +67,7 @@ avgC <- sud3 %>%
                         "10" = 'October', 
                         "11" = 'November', 
                         "12" = 'December'))
-# average air temperature graph
+# average air temperature graph ######### NO
 ggplot(data = avgC, aes(x = months, y = avgC))+
   geom_point(color = 'blue')+
   geom_line(group=1, color = 'blue')+
@@ -77,7 +77,7 @@ ggplot(data = avgC, aes(x = months, y = avgC))+
        y = 'Average Air Temperature (C)',
        x = 'Months')
 
-# average Solar Total per month 
+# average Solar Total per month  ######## YES
 avgSolar <- sud3 %>% 
   filter(year == 2021) %>% 
   filter(`Solar Total (MJ/m²)` >= 0) %>% 
@@ -96,7 +96,7 @@ avgSolar <- sud3 %>%
                                 "10" = 'October', 
                                 "11" = 'November', 
                                 "12" = 'December'))
-# average solar total
+# average solar total ##### YES
 ggplot()+
   geom_col(data = avgSolar, aes(x = months, y = avgSolar), fill = 'gold')+
   theme(axis.text.x  = element_text(angle = 90))+
@@ -109,7 +109,7 @@ ggplot()+
 ###########################################################
 ####################
 
-# OESS Precipitation and Temp data 
+# OESS Precipitation and Temp data  ####3 YES ALL OF THIS?
 rainfalldf1 <- rainfalldf
 
 # remove titles within data set
@@ -132,7 +132,9 @@ rainfalldf1 <- rainfalldf %>%
 rainfalldf1 <- rainfalldf1 %>% 
   select(dates, Date, Month, `High temp (F)`, `Low temp (F)`, `rainfall (inches)`)
 ####################################################
-# avg max temp per month
+
+
+# avg max temp per month          # YES
 tempmax <- rainfalldf1 %>% 
   mutate(Month = factor(Month,
                         levels = c('Jan', 'Feb', 
@@ -145,7 +147,7 @@ tempmax <- rainfalldf1 %>%
   filter(year(dates) == 2021) %>% 
   summarise(tempmax = mean(`High temp (F)`))
 
-# avg min temperature per month
+# avg min temperature per month  # YES
 tempmin <- rainfalldf1 %>%
   mutate(Month = factor(Month,
                         levels = c('Jan', 'Feb', 
@@ -158,7 +160,7 @@ tempmin <- rainfalldf1 %>%
   filter(year(dates) == 2021) %>% 
   summarise(tempmin = mean(`Low temp (F)`)) 
 
-# average temperature plot
+# average temperature plot  # YES
 ggplot()+
   geom_col(data = tempmax, aes(x = Month, y = tempmax), fill= 'blue')+
   geom_col(data = tempmin, aes(x = Month, y = tempmin), fill = 'red')+
@@ -168,7 +170,7 @@ ggplot()+
        y = 'Average Temperature',
        x = 'Months')
 
-# total rainfall per month
+# total rainfall per month     # YES
 totalrain <- rainfalldf1 %>% 
   mutate(Month = factor(Month,
                         levels = c('Jan', 'Feb', 
@@ -181,7 +183,7 @@ totalrain <- rainfalldf1 %>%
   filter(year(dates)==2021) %>% 
   summarise(totalrain = sum(na.rm = TRUE,(`rainfall (inches)`)))
 
-# total rainfall plot
+# total rainfall plot      # YES
 ggplot()+
   geom_col(data = totalrain, aes( x= Month, y = totalrain),fill  = 'skyblue1')+
   labs(title = 'TotalRainfall (2021)',
@@ -190,7 +192,7 @@ ggplot()+
        x = 'Months')
 rainfalldf1 <- rainfalldf1 %>% rename(rainfall = `rainfall (inches)`)
 
-# avg rainfall per month
+# avg rainfall per month       YES
 avgrain <- rainfalldf1 %>% 
   mutate(Month = factor(Month,
                         levels = c('Jan', 'Feb', 
