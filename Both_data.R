@@ -142,7 +142,9 @@ ph_df <- all_data %>%
   mutate( Site = factor(Site)) %>% 
   na.omit()
 
-aov( value ~ Site + month, data = ph_df )
+pH_month <- aov( value ~ Site + month, data = ph_df )
+  summary(pH_month)
+TukeyHSD(pH_month)
   
 turb_df <- all_data %>%
   filter(  variable == 'Turbidity NTU' ) %>%
@@ -151,8 +153,17 @@ turb_df <- all_data %>%
   na.omit()
 
 aov( value ~ Site + month, data = turb_df )
+summary(turb_df)
 
+cond_df <- all_data %>%
+  filter( variable == 'Cond µS/cm') %>%
+  rename( "Site" = `Site Name`) %>%
+  mutate( Site = factor(Site)) %>% 
+  na.omit()
 
+aov(value ~ month + Site, data = cond_df)
+
+summary(all_data)
 
   
   
