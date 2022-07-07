@@ -134,37 +134,89 @@ ggplot(data = avg_boxplot, aes( x= (month), y = as.numeric(value)))+
 
 # Anova Test
 
-summary(all_data)
 
+# pH anova test
 ph_df <- all_data %>%
   filter(  variable == "pH" ) %>%
+  filter(year == 2021) %>% 
   rename( "Site" = `Site Name`) %>%
   mutate( Site = factor(Site)) %>% 
   na.omit()
 
-pH_month <- aov( value ~ Site + month, data = ph_df )
-  summary(pH_month)
-TukeyHSD(pH_month)
-  
+pH_df <- aov( value ~ Site + month, data = ph_df )
+  summary(pH_df)
+TukeyHSD(pH_df)
+
+# turbidity anova test  
 turb_df <- all_data %>%
+  filter(year == 2021) %>% 
   filter(  variable == 'Turbidity NTU' ) %>%
   rename( "Site" = `Site Name`) %>%
   mutate( Site = factor(Site)) %>% 
   na.omit()
 
-aov( value ~ Site + month, data = turb_df )
+turb_df <- aov( value ~ Site + month, data = turb_df )
 summary(turb_df)
 
+# conductivity anova test
 cond_df <- all_data %>%
   filter( variable == 'Cond µS/cm') %>%
+  filter(year == 2021) %>% 
+  rename( "Site" = `Site Name`) %>%
+  mutate( Site = factor(Site)) %>% 
+  na.omit
+
+cond_df <- aov( value ~ Site + month, data = cond_df)
+summary(cond_df)
+
+# ODO anova test
+odo_df <- all_data %>%
+filter( variable == 'ODO mg/L') %>%
+  filter(year == 2021) %>% 
   rename( "Site" = `Site Name`) %>%
   mutate( Site = factor(Site)) %>% 
   na.omit()
 
-aov(value ~ month + Site, data = cond_df)
+odo_df <- aov(value ~ Site + month, data = odo_df)
+summary(odo_df)
 
-summary(all_data)
+# ORP mv anova test
+orp_df <- all_data %>%
+  filter( variable == 'ORP mV') %>%
+  filter(year == 2021) %>% 
+  rename( "Site" = `Site Name`) %>%
+  mutate( Site = factor(Site)) %>% 
+  na.omit()
 
-  
-  
-       
+orp_df <- aov(value ~ Site + month, data = orp_df)  
+summary(orp_df)  
+
+# SpCond µS/cm anova test
+spcond_df <- all_data %>%
+  filter( variable == 'ORP mV') %>%
+  filter(year == 2021) %>% 
+  rename( "Site" = `Site Name`) %>%
+  mutate( Site = factor(Site)) %>% 
+  na.omit()
+
+spcond_df <- aov(value ~ Site + month, data = spcond_df)
+summary(spcond_df)
+
+# NitraLED mg/L anova test
+nitra_df <- all_data %>%
+  filter( variable == 'ORP mV') %>%
+  filter(year == 2021) %>% 
+  rename( "Site" = `Site Name`) %>%
+  mutate( Site = factor(Site)) %>% 
+  na.omit()
+
+nitra_df <- aov(value ~ Site + month, data = nitra_df)
+summary(nitra_df)
+
+###################################################3
+url5 <- "https://docs.google.com/spreadsheets/d/14nn7NWMBatbzcz9nqcTFzQghmzMUE2o0/edit#gid=571749034"
+sud_hourly<-gsheet2tbl(url5)
+
+
+
+
