@@ -91,7 +91,11 @@ lagoonC2<-lagoonC2%>%
 ########## combine the data sets ##################
 all_data<-rbind(lagoonC2, sond2)
 
-
+all_data%>%
+  mutate(month = factor(month,
+                        levels = c("January", "February", "March",
+                                   "April", "May", "June", "July", "August", "September", "October",
+                                   "November", "December")))
 ######### make a vector
 possible_dates<-seq(min(ymd(all_data$Date), na.rm =TRUE), max(ymd(all_data$Date), na.rm =TRUE), by = "day")
 
@@ -201,109 +205,125 @@ ui <- dashboardPage(skin = 'black',
                               choices = c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
                                           "Temp °C", "NH4+ -N mg/L", "NH3 mg/L"))
                 )
-                )
-             ),
+                ))
+             ,
       # TRENDS TAB
       tabItem(tabName = "trends",
               fluidRow(
-                box(title = "Monthly Trends in Variables",
-                    solidHeader = TRUE,
-                  plotOutput("trend_data"),
-                    background = "blue"),
-                
-                box(
-                  title = "Select Monthly:",
-                  background = "blue",
-                  collapsible = TRUE,
-                  
-                  solidHeader = TRUE,
-                  
-                  selectInput("year4", "Year",
-                              choices = c("2020", "2021")),
-                  selectInput("site4", "Site" ,
-                              choices = c("Wetland Basin 3", "Lagoon C")),
-                  selectInput("variable4", "Variable",
-                              choices = c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
-                                          "Temp °C", "NH4+ -N mg/L", "NH3 mg/L"))
-                  
-                  )),
-                fluidRow(
-                box(title = "Daily Trends in Variables",
-                    solidHeader = TRUE,
-                  plotOutput("trend_data2"),
-                    background = "maroon"),
-                
-                box(
-                  title = "Select Daily:",
-                  background = "maroon",
-                  collapsible = TRUE,
-                  solidHeader = TRUE,
-                  
-                  selectInput("year5", "Year",
-                              choices = c("2020", "2021"),
-                              selected = "2021"),
-                  selectInput("site5", "Site" ,
-                              choices = c("Wetland Basin 3", "Lagoon C")),
-                  selectInput("variable5", "Variable",
-                              choices = c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
-                                          "Temp °C", "NH4+ -N mg/L", "NH3 mg/L")),
-                  selectInput( "month5", "Month",
-                               multiple = TRUE,
-                               choices = c("January", "February", "March",
-                                           "April", "May", "June", "July", "August", "September", "October",
-                                           "November", "December"),
-                               selected = "January"
-                              
-                     ))
-                  
-                ),
-                
-               fluidRow(
-                box(title = "Hourly Trends in Variables",
-                    solidHeader = TRUE,
-                  plotOutput("trend_data3"),
-                    background = "olive"),
-                box(
-                  title = "Select Hourly:",
-                  background = "olive",
-                  collapsible = TRUE,
-                  solidHeader = TRUE,
-                  
-                  selectInput("site6", "Site" ,
-                              choices = c("Wetland Basin 3", "Lagoon C")),
-                  selectInput("variable6", "Variable",
-                              choices = c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
-                                          "Temp °C", "NH4+ -N mg/L", "NH3 mg/L")),
-                  airDatepickerInput("date6", "Date", 
-                            minDate  = (min(ymd(all_data$Date), na.rm =TRUE)),
-                            maxDate = (max(ymd(all_data$Date), na.rm =TRUE)),
-                            disabledDates = dates_to_disable,
-                            multiple = TRUE,
-                            value = "2021-10-19")
-                                   
-                  )
-                  
-                
-                
-                
-                )),
+                tabBox(
+                  title = "Trends",
+                  id= "trendstab",
+                  width = 12,
+                  tabPanel( "Monthly",
+                    box(
+                      title = "Monthly Trends in Variables",
+                      solidHeader = TRUE,
+                      width = 6,
+                      plotOutput("trend_data"),
+                      background = "blue"),
+                    
+                    box(
+                      title = "Select Monthly:",
+                      background = "blue",
+                      collapsible = TRUE,
+                      width = 6,
+                      
+                      solidHeader = TRUE,
+                      
+                      selectInput("year4", "Year",
+                                  choices = c("2020", "2021")),
+                      selectInput("site4", "Site" ,
+                                  choices = c("Wetland Basin 3", "Lagoon C"),
+                                  multiple = TRUE),
+                      selectInput("variable4", "Variable",
+                                  choices = c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
+                                              "Temp °C", "NH4+ -N mg/L", "NH3 mg/L"))
+                      
+                    )),
+                    tabPanel( "Daily",
+                      box(title = "Daily Trends in Variables",
+                          solidHeader = TRUE,
+                          width = 6,
+                          plotOutput("trend_data2"),
+                          background = "maroon"),
+                      
+                      box(
+                        title = "Select Daily:",
+                        background = "maroon",
+                        collapsible = TRUE,
+                        width = 6,
+                        solidHeader = TRUE,
+                        
+                        selectInput("year5", "Year",
+                                    choices = c("2020", "2021"),
+                                    selected = "2021"),
+                        selectInput("site5", "Site" ,
+                                    choices = c("Wetland Basin 3", "Lagoon C")),
+                        selectInput("variable5", "Variable",
+                                    choices = c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
+                                                "Temp °C", "NH4+ -N mg/L", "NH3 mg/L")),
+                        selectInput( "month5", "Month",
+                                     multiple = TRUE,
+                                     choices = c("January", "February", "March",
+                                                 "April", "May", "June", "July", "August", "September", "October",
+                                                 "November", "December"),
+                                     selected = "January"
+                                     
+                        ))
+                      
+                    ),
+                    
+                    tabPanel( "Hourly",
+                      box(title = "Hourly Trends in Variables",
+                          solidHeader = TRUE,
+                          width = 6,
+                          plotOutput("trend_data3"),
+                          background = "olive"),
+                      box(
+                        title = "Select Hourly:",
+                        background = "olive",
+                        width = 6,
+                        collapsible = TRUE,
+                        solidHeader = TRUE,
+                        
+                        selectInput("site6", "Site" ,
+                                    choices = c("Wetland Basin 3", "Lagoon C")),
+                        selectInput("variable6", "Variable",
+                                    choices = c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
+                                                "Temp °C", "NH4+ -N mg/L", "NH3 mg/L")),
+                        airDatepickerInput("date6", "Date", 
+                                           minDate  = (min(ymd(all_data$Date), na.rm =TRUE)),
+                                           maxDate = (max(ymd(all_data$Date), na.rm =TRUE)),
+                                           disabledDates = dates_to_disable,
+                                           multiple = TRUE,
+                                           value = "2021-10-19")
+                        
+                      )
+                      
+                      
+                      
+                      
+                    )))),
                 ################################## BOXPLOTS TAB #############################
       tabItem(tabName = "boxplots",
               fluidRow(
                 box(title = "Varience of Variables by Month",
                     solidHeader = TRUE,
+                    width = 12,
                   plotOutput("avg_boxplot"),
-                  background = "teal"),
-                
+                  background = "teal")),
+                fluidRow(
                 box(
                   title = "Select:",
                   background = "teal",
                   collapsible = TRUE,
+                  width = 12,
                   solidHeader = TRUE,
                   selectInput("year2", "Year",
                               choices = c("2020", "2021")),
                   selectInput("site2", "Site" ,
-                              choices = c("Wetland Basin 3", "Lagoon C")),
+                              choices = c("Wetland Basin 3", "Lagoon C"), 
+                              multiple = TRUE),
                   selectInput("variable2", "Variable",
                               choices = c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
                                           "Temp °C", "NH4+ -N mg/L", "NH3 mg/L"))
@@ -313,12 +333,16 @@ ui <- dashboardPage(skin = 'black',
               fluidRow(
                 box(title = "Predictive Models Using 2021 Data",
                     solidHeader = TRUE,
+                    width = 12,
                   plotOutput("predic_model"),
-                    background = "purple"),
+                    background = "purple")),
+              
+              fluidRow(
                 box(
                   title = "Select:",
                   background = "purple",
                   collapsible = TRUE,
+                  width = 12,
                   
                   solidHeader = TRUE,
                   
@@ -390,6 +414,7 @@ server <- function(input, output) {
     month_trend<-all_data%>%
       group_by(month)%>%
       filter(year == input$year4)%>%
+      #filter(`Site Name` %in% input$site4)%>%
       filter(variable == input$variable4)%>%
       summarise(avg_month = mean(as.numeric(value)))%>%
       mutate(month = factor(month,
@@ -417,6 +442,7 @@ server <- function(input, output) {
       filter(`Site Name` == input$site5)%>%
       filter(variable == input$variable5) %>%
       summarise(meanVar = mean(as.numeric(value)))
+    
     ggplot(data = avgDay, aes(x = days, y =meanVar, color = month))+
       geom_point()+
       geom_line()+
@@ -436,7 +462,7 @@ server <- function(input, output) {
        # filter(year == input$year6)%>%
         filter(variable == input$variable6)%>%
         filter(Date %in% input$date6)%>% 
-        filter(`Site Name` == input$site6) 
+        filter(`Site Name` == input$site6)
       
       ggplot(data = time_attempt, aes(x=hour, y=as.numeric(value), color = factor(Date)))+
         geom_point()+
@@ -453,11 +479,16 @@ server <- function(input, output) {
   output$avg_boxplot <- renderPlot({  
     avg_boxplot <- all_data %>%
       filter(year == input$year2) %>%
-      filter(`Site Name` == input$site2)%>%
-      filter(variable == input$variable2)
+      filter(`Site Name` %in% input$site2)%>%
+      filter(variable == input$variable2)%>%
+      mutate(month = factor(month,
+                            levels = c("January", "February", "March",
+                                       "April", "May", "June", "July", "August", "September", "October",
+                                       "November", "December")))
     
+  
     ggplot(data = avg_boxplot, 
-           aes(x = month, y = as.numeric(value)))+
+           aes(x = month, y = as.numeric(value), color = `Site Name`))+
       geom_boxplot()+
       theme(axis.text = element_text(angle = 90))+
       labs(x = "Month",
@@ -468,17 +499,25 @@ server <- function(input, output) {
     
     avg_boxplot <- all_data %>%
       filter(`Site Name` == input$sitename3)%>%
-      filter(variable == input$variable3)
+      filter(variable == input$variable3)%>%
+      mutate(month = factor(month,
+                            levels = c("January", "February", "March",
+                                       "April", "May", "June", "July", "August", "September", "October",
+                                       "November", "December")))
     # code for for predictive model for turbidity
     avg_predict <- avg_boxplot %>%
       filter( year == 2021 ) %>% 
       group_by( month ) %>% 
-      summarize(avg = mean(as.numeric(value)))
+      summarize(avg = mean(as.numeric(value)))%>%
+      mutate(month = factor(month,
+                            levels = c("January", "February", "March",
+                                       "April", "May", "June", "July", "August", "September", "October",
+                                       "November", "December")))
     
     #####################################################################   
     # predictive model using year 2021
     ggplot( data = avg_boxplot, aes( x= (month), y = as.numeric(value)))+
-      geom_point()+
+      geom_jitter(alpha = .3)+
       theme(axis.text.x = element_text(angle = 90))+
       labs(
            y = 'Units',
