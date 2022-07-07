@@ -223,15 +223,29 @@ ui <- dashboardPage(skin = 'black',
                     background = "orange")
               ),
               fluidRow(
-                tabBox(title = "DataLab Team",
+                tabBox(title = "Who We Are",
                        id = "tabset1",
                        width = 12,
-                       tabPanel("Tessa Shackleford", "DataLab Team Member from Sewanee; Tennessee; Class of 2024; Environment and Sustainability; Sewanee: The University of South"),
-                       tabPanel("Lauren Hutchison", "DataLab Team Member from Aldie, Virginia,
-                                Class of 2022; Environment and Sustainability; Sewanee: The University of South"),
-                       tabPanel("Harrison Lowery", "DataLab Team Member from Homewood, Alabama;
-                                Class of 2024; English; Sewanee: The University of South")
-                      
+                       tabPanel(title = "DataLab Fellows",
+                                fluidRow(column(6, h3("Lauren Hutchison C '22"),
+                                                p("Lauren Hutchison is from Aldie, VA and is an Environment & Sustainability major at Sewanee: The University of the South. She is a member of the Order of the Gown and a female athlete on the women's soccer team."),
+                                                br(),
+                                                h3("Harrison Lowery C '24"),
+                                                p("Harrison Lowery(C'24) is from Homewood, AL and is an English major at Sewanee: The University of the South. Harrison is a member of the Sewanee-Monteagle Rotary Club and a member of Phi Gamma Delta."),
+                                                br(),
+                                                h3("Tessa Shackelford C '24"),
+                                                p("Tessa Shackelford is from Sewanee, TN and is an Environment & Sustainability major at Sewanee: The University of the South. She is a member of the Order of the Gown, a site leader for the Bonner/ Canale program at the University farm, a female athlete on the women's tennis team, and a member of Theta Kappa Phi."
+                                                )))), 
+                       tabPanel(title = "Project Mentor",
+                                fluidRow(column(6, h3("Dr. Catherine Cavagnaro"),
+                                                p("Dr. Catherine Cavagnaro is a Professor of Mathematics at Sewanee: The University of the South, and the project mentor for the Sewanee Wetlands Project at DataLab. She holds a B.S from Santa Clara University and a Ph.D. from University of Illinois at Urbana-Champaign.")))),
+                       tabPanel(title = "Community Partners",
+                                fluidRow(column(6, h3("Dr. Deborah McGrath"),
+                                                p("Dr. Deborah McGrath is a Professor of Biology and the Head Department Chair of Environment & Sustainability at Sewanee: The University of the South. She is also the Assistant Dean for the Sewanee Integrated Program in the Environment. Dr. McGrath is the project director at the Sewanee Wetland Research Station, and the community partner for the Sewanee Wetlands Project at DataLab.",
+                                                  br(),
+                                                  h3("Sewanee Utility District(SUD)"),
+                                                  p("The Sewanee Utility District of Franklin and Marion Counties treats and manages wastewater through a lagoon and spray field system. They provide potable water to Sewanee, Midway, Depwoods, and Jumpoff communities. The SUD has collected all data used in the Wetlands Projects' graphs and visuals.")))))
+                       
                 )
                 
               )),
