@@ -6,6 +6,7 @@ library(readxl)
 library(ggpubr)
 library(broom)
 library(AICcmodavg)
+library(readr)
 
 url<-"https://docs.google.com/spreadsheets/d/14nn7NWMBatbzcz9nqcTFzQghmzMUE2o0/edit?usp=sharing&ouid=104854259661631892531&rtpof=true&sd=true"
 sud <-gsheet2tbl(url)
@@ -161,6 +162,7 @@ summary(turb_df)
 # conductivity anova test
 cond_df <- all_data %>%
   filter( variable == 'Cond µS/cm') %>%
+  filter(value != 'SENSOR FAILURE') %>% 
   filter(year == 2021) %>% 
   rename( "Site" = `Site Name`) %>%
   mutate( Site = factor(Site)) %>% 
@@ -213,10 +215,95 @@ nitra_df <- all_data %>%
 nitra_df <- aov(value ~ Site + month, data = nitra_df)
 summary(nitra_df)
 
+# Water temp anova test 
+temp_c_df <- all_data %>%
+  filter( variable == 'Temp °C') %>%
+  filter(year == 2021) %>% 
+  filter(value != 'SENSOR FAILURE') %>% 
+  rename( "Site" = `Site Name`) %>%
+  mutate( Site = factor(Site)) %>% 
+  na.omit()
+temp_c_df <- aov(value ~ Site + month, data = temp_c_df)
+summary(temp_c_df)
+
+# NH4+ -N mg/L Anova Test
+nh4_df <- all_data %>%
+  filter( variable == 'NH4+ -N mg/L') %>%
+  filter(year == 2021) %>% 
+  filter(value != 'SENSOR FAILURE') %>% 
+  rename( "Site" = `Site Name`) %>%
+  mutate( Site = factor(Site)) %>% 
+  na.omit()
+
+nh4_df <- aov(value ~ month, data = nh4_df)
+summary(nh4_df)
+
+# NH3 mg/L
+nh3_df <- all_data %>%
+  filter( variable == 'NH3 mg/L') %>%
+  filter(year == 2021) %>% 
+  filter(value != 'SENSOR FAILURE') %>% 
+  rename( "Site" = `Site Name`) %>%
+  mutate( Site = factor(Site)) %>% 
+  na.omit()
+nh3_df <- aov(value ~ month, data = nh3_df)
+summary(nh3_df)
+
 ###################################################3
 url5 <- "https://docs.google.com/spreadsheets/d/14nn7NWMBatbzcz9nqcTFzQghmzMUE2o0/edit#gid=571749034"
 sud_hourly<-gsheet2tbl(url5)
 
+errors <- all_data %>% 
+  filter(value == 'SENSOR FAILURE') %>% 
+  filter(year == 2021) %>% 
+  group_by(variable, month) %>% 
+tally()
 
+ggplot(data = errors, aes( x = variable, y = n))+
+  geom_col()+
+  facet_wrap(~month)
+  
+  
+ 
+all_data %>% 
+  filter(`Site Name` == 'Wetland Basin 3') %>% 
+  tally() # 124,202
+all_data %>% 
+  filter(`Site Name` == 'Lagoon C') %>% 
+  tally() # 122,976
+#####################################################
+url5 <- "https://docs.google.com/spreadsheets/d/14nn7NWMBatbzcz9nqcTFzQghmzMUE2o0/edit#gid=571749034"
+sud_hourly<-gsheet2tbl(url5)
 
+#select what ya need
+sudhour<- sud_hourly %>% 
+  select(Timestamp, `VPD Avg (Kpa)`, `Rain (mm)`)
+
+# make a year column
+sudhour2 <- sudhour %>% 
+  mutate(yyyy = year(mdy_hm(Timestamp)))
+bads <- which(is.na(sudhour2$yyyy))
+sudhour2$yyyy[bads]<-year(ymd_hms(sudhour2$Timestamp[bads]))        
+bads <- which(is.na(sudhour2$yyyy))
+sudhour2[bads,]
+
+# make a month column
+sudhour2 <- sudhour %>% 
+  mutate(mm = month(mdy_hm(Timestamp)))
+bads2 <- which(is.na(sudhour2$mm))
+sudhour2$yyyy[bads2]<-year(ymd_hms(sudhour2$Timestamp[bads2]))
+
+ <- sudhour2 %>% 
+  filter(yyyy == 2021) %>% 
+  group_by(mm, `VPD Avg (Kpa)`) %>% 
+  mutate(month = factor(mm,
+                        levels = c('January', 'February', 
+                                   'March', 
+                                   'April', 
+                                   'May', 'June', 
+                                   'July', 'August', 'September', 
+                                   'October', 'November', 'December'))) %>% 
+  na.omit()
+  
+  
 
