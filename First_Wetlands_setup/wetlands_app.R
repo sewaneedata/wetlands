@@ -88,7 +88,7 @@ lagoonC2<-lagoonC2%>%
 
 
 
-########## combine the data sets ##################
+########## combine the data sets ################## ----
 all_data<-rbind(lagoonC2, sond2)
 
 all_data%>%
@@ -108,7 +108,7 @@ keeps<-which(!possible_dates%in%dates_we_have)
 
 dates_to_disable<-possible_dates[keeps]
 
-######## CHANGING THE COLOR BASED ON EPA STANDARDS
+######## CHANGING THE COLOR BASED ON EPA STANDARDS ------
 head(all_data)
 
 all_data<-all_data %>% 
@@ -126,9 +126,71 @@ all_data<-all_data %>%
              variable == 'ORP mV' & value < -50 ~ 'red',
              TRUE ~ 'green'
            ))
-#################################### SUD DATA BEGINS -- CLEANING AND MODIFICATIONS
+#################################### SUD DATA BEGINS -- CLEANING AND MODIFICATIONS ------
+
+url<-"https://docs.google.com/spreadsheets/d/14nn7NWMBatbzcz9nqcTFzQghmzMUE2o0/edit?usp=sharing&ouid=104854259661631892531&rtpof=true&sd=true"
+sud <-gsheet2tbl(url)
+url4 <-"https://docs.google.com/spreadsheets/d/1A_ljZAZmiRBsW5iL40EGRlVG1LkMa_w_7rqCnwAFWKA/edit#gid=537305485"
+rainfalldf<-gsheet2tbl(url4)
+
+# rename 
+sud<-sud%>%
+  rename(Date = `Date Values Reflect`)
+
+# filter missing data
+sud<-sud %>%
+  filter(Date != "MISSING DATA" | Date != "NO POWER - AERATOR INSTALL")
+
+# change date 
+library(lubridate)
+sud2 <- sud
+sud2$Date <- mdy(sud$Date)
+
+# month column 
+sud<-sud2%>%
+  mutate(month = month(Date))%>%
+  mutate(month = month.name[month])%>%
+  mutate(year = year(Date))
+
+# select the needed columns in Sud data 
+sud3 <- sud2 %>% 
+  select(Date, `Timestamp*`, `Air temp Avg (C)`, `Air Temp Max (C)`,`Air Temp Min`, `Solar Total (MJ/m²)`)
+
+# rename variables
+sud3<-sud3 %>% rename(Dates=Date) %>% rename(Time=`Timestamp*`) %>% 
+  rename(air_temp_avg_C = `Air temp Avg (C)`) %>% rename(air_temp_max_C = `Air Temp Max (C)`) %>% 
+  rename(air_temp_min_C = `Air Temp Min`)
+# year and month columnns
+sud3 <- sud3 %>% 
+  mutate(year = year(Dates))
+sud3 <- sud3 %>% 
+  mutate(months = month(Dates))
 
 
+
+# OESS Precipitation and Temp data   ------
+rainfalldf1 <- rainfalldf
+
+# remove titles within data set
+#rainfalldf1 <- rainfalldf1 %>% 
+#filter(Date != 'Date') %>%
+#drop_na( Year )
+
+# month collumn
+rainfalldf1 <- rainfalldf %>% 
+  filter(!is.na(Date)) %>%
+  unite( col=Date, Year:Date, sep="-")
+#mutate( Month = month.abb[month( as_date(Date)) ] )
+
+#reformat datasets because date was not matche up with the year
+rainfalldf1 <-rainfalldf1 %>%
+  mutate(dates = c(rainfalldf1$Date[1:369] %>% ydm(), rainfalldf1$Date[370:376] %>% ymd())) %>% 
+  mutate( Month = month.abb[month( as_date(dates)) ] )
+
+# select the columns needed
+rainfalldf1 <- rainfalldf1 %>% 
+  select(dates, Date, Month, `High temp (F)`, `Low temp (F)`, `rainfall (inches)`)
+####################################################
 
 ##################################################################################################################
 
@@ -412,22 +474,40 @@ server <- function(input, output) {
  
     ############################## month trends
     month_trend<-all_data%>%
-      group_by(month)%>%
+      group_by(month, `Site Name`)%>%
       filter(year == input$year4)%>%
-      #filter(`Site Name` %in% input$site4)%>%
+      filter(`Site Name` %in% input$site4)%>%
       filter(variable == input$variable4)%>%
-      summarise(avg_month = mean(as.numeric(value)))%>%
-      mutate(month = factor(month,
-                            levels = c("January", "February", "March",
-                                       "April", "May", "June", "July", "August", "September", "October",
-                                       "November", "December")))
+      summarise(avg_month = mean(as.numeric(value), na.rm = TRUE), site = `Site Name`) # %>%
+      # mutate(month = factor(month,
+                            # levels = c("January", "February", "March",
+                                       # "April", "May", "June", "July", "August", "September", "October",
+                                       # "November", "December")))
+    month_trend$month <- factor(month_trend$month, levels = c("January",
+                                                              "February",
+                                                              "March",
+                                                              "April",
+                                                              "May",
+                                                              "June",
+                                                              "July",
+                                                              "August",
+                                                              "September",
+                                                              "October",
+                                                              "November",
+                                                              "December"),
+                                labels = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12))
     
-    ggplot(data = month_trend, aes(month, avg_month))+
+    ggplot(data = month_trend, aes(as.numeric(month), avg_month, color = site))+
       geom_point()+
-      geom_line(group = 1)+
+      geom_line()+
       theme(axis.text.x = element_text(angle = 90))+
       labs(x = "Month",
-           y = "Units")
+           y = "Units") +
+      xlim(1, 12) +
+      scale_x_continuous(breaks=seq(1, 12, 1),
+                         labels = c("January", "February", "March",
+                                    "April", "May", "June", "July", "August", "September", "October",
+                                    "November", "December"))
   })
 
     output$trend_data2 <- renderPlot({    
