@@ -292,6 +292,16 @@ ggplot()+
        subtitle = 'Temp Min (C) per Month ',
        y = 'Average Min Temperature (C)',
        x = 'Months')
+###################################################
 
+# rainfall anova test
+rain_df <- aov(rainfall ~ Month, data = rainfalldf1)
+summary(rain_df)
 
+# temp max anova test
+tmax_df <- aov(`High temp (F)`~ Month, data = rainfalldf1)
+summary(tmax_df)
 
+# temp min anova test
+tmin_df <- aov(`Low temp (F)`~ Month, data = rainfalldf1)
+summary(tmin_df)
