@@ -87,7 +87,7 @@ avg_boxplot <- all_data %>%
   filter(year == year)%>%
   filter(year == 2021) %>% 
   filter(variable == 'Turbidity NTU') %>% 
-  mutate(month = factor(month,
+  mutate(month= factor(month,
                         levels = c('January', 'February', 
                                    'March', 
                                    'April', 
@@ -281,22 +281,23 @@ sudhour<- sud_hourly %>%
 
 # make a year column
 sudhour2 <- sudhour %>% 
-  mutate(yyyy = year(mdy_hm(Timestamp)))
+  mutate(yyyy = year(mdy_hm(Timestamp))) %>% 
 bads <- which(is.na(sudhour2$yyyy))
 sudhour2$yyyy[bads]<-year(ymd_hms(sudhour2$Timestamp[bads]))        
-bads <- which(is.na(sudhour2$yyyy))
 sudhour2[bads,]
 
-# make a month column
-sudhour2 <- sudhour %>% 
-  mutate(mm = month(mdy_hm(Timestamp)))
+sudhour2 <- sudhour2 %>% 
+mutate(mm = month(mdy_hm(Timestamp))) %>%
 bads2 <- which(is.na(sudhour2$mm))
-sudhour2$yyyy[bads2]<-year(ymd_hms(sudhour2$Timestamp[bads2]))
+sudhour2$mm[bads2]<-month(ymd_hms(sudhour2$Timestamp[bads2]))
+sudhour2[bads2,]
 
- <- sudhour2 %>% 
+# VPD avg
+sudhour2 %>% 
   filter(yyyy == 2021) %>% 
-  group_by(mm, `VPD Avg (Kpa)`) %>% 
-  mutate(month = factor(mm,
+
+  summarise(vpdavg = mean(`VPD Avg (Kpa)`)) %>% 
+  mutate(mm = factor(mm,
                         levels = c('January', 'February', 
                                    'March', 
                                    'April', 
@@ -304,6 +305,31 @@ sudhour2$yyyy[bads2]<-year(ymd_hms(sudhour2$Timestamp[bads2]))
                                    'July', 'August', 'September', 
                                    'October', 'November', 'December'))) %>% 
   na.omit()
-  
-  
+#################################################    
+sudhour2 <- sudhour %>%
+  mutate(yyyy = year(mdy_hm(Timestamp))) %>%
+  bads <- which(is.na(sudhour2$yyyy))
+sudhour2$yyyy[bads]<-year(ymd_hms(sudhour2$Timestamp[bads]))
+
+# Create month column
+sudhour3 <- sudhour2 %>%
+  mutate(mm = month(mdy_hm(Timestamp))) %>%
+  bads <- which(is.na(sudhour3$mm))
+sudhour3$mm[bads]<-month(ymd_hms(sudhour3$Timestamp[bads]))
+####################################################
+# Delta between each site
+
+all_data %>% 
+  filter(`Site Name` == 'Lagoon C') %>% 
+  filter(variable == 'Cond µS/cm') %>% 
+  tally()
+all_data %>% 
+  filter(`Site Name` == 'Wetland Basin 3') %>% 
+  filter(variable == 'Cond µS/cm' ) %>% 
+  tally()
+# Basin 3: NitraLed: 7306, NH4: 7306, NH3: 7306, Cond: 7306
+# Lagoon C: Nitraled: 7686, NH4: 0, NH3: 0, Cond: 7686
+# missing variables: 17,272: lagoon C has 380 more rows per variable
+
+
 
