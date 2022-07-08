@@ -6,6 +6,7 @@ library(lubridate)
 library(readxl)
 #install.packages("shinyWidgets")
 library(shinyWidgets)
+library(plotly)
 
 #Valid colors are: red, yellow, aqua, blue, light-blue, 
 #green, navy, teal, olive, lime, orange, fuchsia, purple, maroon, black
@@ -299,12 +300,12 @@ ui <- dashboardPage(skin = 'black',
                 box(title = "Variable Averages by Month",
                     solidHeader = TRUE,
                     width = 12, 
-                    plotOutput("sond_cond"),
+                    plotlyOutput("sond_cond"),
                     background = "navy")),
               fluidRow( 
                  box(title = "Specified Variable Average by Month",
                      solidHeader = TRUE,
-                   plotOutput("avg_vari_site"),
+                   plotlyOutput("avg_vari_site"),
                     background = "navy"),
                 
               
@@ -339,7 +340,7 @@ ui <- dashboardPage(skin = 'black',
                       title = "Monthly Trends in Variables",
                       solidHeader = TRUE,
                       width = 6,
-                      plotOutput("trend_data"),
+                      plotlyOutput("trend_data"),
                       background = "blue"),
                     
                     box(
@@ -365,7 +366,7 @@ ui <- dashboardPage(skin = 'black',
                       box(title = "Daily Trends in Variables",
                           solidHeader = TRUE,
                           width = 6,
-                          plotOutput("trend_data2"),
+                          plotlyOutput("trend_data2"),
                           background = "maroon"),
                       
                       box(
@@ -398,7 +399,7 @@ ui <- dashboardPage(skin = 'black',
                       box(title = "Hourly Trends in Variables",
                           solidHeader = TRUE,
                           width = 6,
-                          plotOutput("trend_data3"),
+                          plotlyOutput("trend_data3"),
                           background = "olive"),
                       box(
                         title = "Select Hourly:",
@@ -431,7 +432,7 @@ ui <- dashboardPage(skin = 'black',
                 box(title = "Varience of Variables by Month",
                     solidHeader = TRUE,
                     width = 12,
-                  plotOutput("avg_boxplot"),
+                  plotlyOutput("avg_boxplot"),
                   background = "teal")),
                 fluidRow(
                 box(
@@ -494,7 +495,7 @@ server <- function(input, output) {
   
    })
   
-  output$sond_cond <- renderPlot({
+  output$sond_cond <- renderPlotly({
     
     new_df<-all_data%>%
       group_by(`Site Name`, month, variable)%>%
@@ -508,14 +509,14 @@ server <- function(input, output) {
       geom_col(aes(variable, avg, fill = color), position = "dodge")+
       theme(axis.text = element_text(angle = 90))+
       labs(x = "Variable",
-           y = "Units")+
-      scale_fill_manual(values = c(`meets standards` = "blue", `does not meet standards` = "red"))+
+           y = input$variable)+
+      scale_fill_manual(values = c(`meets standards` = "slategray2", `does not meet standards` = "yellowgreen"))+
       facet_wrap(~`Site Name`)
    
   })
   
   
-  output$avg_vari_site <- renderPlot({
+  output$avg_vari_site <- renderPlotly({
     avg_vari_site<-all_data%>%
       group_by(month, year, `Site Name`)%>%
       filter(year == input$year)%>%
@@ -525,12 +526,12 @@ server <- function(input, output) {
     ggplot(data = avg_vari_site)+
       geom_col(aes(month, avg, fill = color), position = "dodge")+
       labs(x = "Month",
-           y = "Unit")+
-      scale_fill_manual(values = c(`meets standards` = "blue", `does not meet standards` = "red"))+
+           y = input$variable)+
+      scale_fill_manual(values = c(`meets standards` = "slategray2", `does not meet standards` = "yellowgreen"))+
       facet_wrap(~`Site Name`)
   })
   
-  output$trend_data <- renderPlot({  
+  output$trend_data <- renderPlotly({  
  
     ############################## month trends
     month_trend<-all_data%>%
@@ -562,7 +563,7 @@ server <- function(input, output) {
       geom_line()+
       theme(axis.text.x = element_text(angle = 90))+
       labs(x = "Month",
-           y = "Units") +
+           y = input$variable4) +
       xlim(1, 12) +
       scale_x_continuous(breaks=seq(1, 12, 1),
                          labels = c("January", "February", "March",
@@ -570,7 +571,7 @@ server <- function(input, output) {
                                     "November", "December"))
   })
 
-    output$trend_data2 <- renderPlot({    
+    output$trend_data2 <- renderPlotly({    
   
        ################################# daily trends
     daily_all_data <- all_data %>%
@@ -589,12 +590,12 @@ server <- function(input, output) {
       scale_y_continuous(breaks = seq(0,40,2))+
       scale_x_continuous(breaks = seq(0,30,2))+
       labs(x = "Day of the Month",
-           y = "Units")
+           y = input$variable5)
     
     
     
   })
-    output$trend_data3 <- renderPlot({    
+    output$trend_data3 <- renderPlotly({    
      
        ######################################## hourly trends
       time_attempt<-all_data %>%
@@ -608,7 +609,7 @@ server <- function(input, output) {
         geom_point()+
         geom_line()+
         labs(x = "Hour of the Day",
-             y = "Units",
+             y = input$variable6,
              color = "Date")
       
       
@@ -616,7 +617,7 @@ server <- function(input, output) {
     })
   
     ##################################################################### 
-  output$avg_boxplot <- renderPlot({  
+  output$avg_boxplot <- renderPlotly({  
     avg_boxplot <- all_data %>%
       filter(year == input$year2) %>%
       filter(`Site Name` %in% input$site2)%>%
@@ -632,7 +633,7 @@ server <- function(input, output) {
       geom_boxplot()+
       theme(axis.text = element_text(angle = 90))+
       labs(x = "Month",
-           y = "Units")
+           y = input$variable2)
   })
     #####################################################################  
   output$predic_model <- renderPlot({
@@ -660,7 +661,7 @@ server <- function(input, output) {
       geom_jitter(alpha = .3)+
       theme(axis.text.x = element_text(angle = 90))+
       labs(
-           y = 'Units',
+           y = input$variable3,
            x = 'Months')+
       geom_point(data = avg_predict, aes(x = month, y = avg), 
                  size = 2, color = 'red')+
