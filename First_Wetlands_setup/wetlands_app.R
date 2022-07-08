@@ -115,16 +115,16 @@ all_data<-all_data %>%
   mutate(color = NA) %>% 
   mutate(color = 
            case_when(
-             variable == 'Cond µS/cm' & value > 200 & value < 0 ~ 'red',
-             variable == 'pH' & value > 8.5 & value < 6.5  ~ 'red',
-             variable == 'ODO mg/L' & value > 253 & value < 260 ~ 'red',
-             variable == 'NH3 mg/L' & value > 253 & value < 260 ~ 'red',
-             variable == 'Turbidity NTU' & value > .3 ~ 'red',
-             variable == 'NitraLED mg/L' & value > 10 ~ 'red',
-             variable == 'Temp °C' & value > 253 & value < 260 ~ 'red',
-             variable == 'NH4+ -N mg/L' & value > 253 & value < 260 ~ 'red',
-             variable == 'ORP mV' & value < -50 ~ 'red',
-             TRUE ~ 'green'
+             variable == 'Cond µS/cm' & value > 50 & value < 1500 ~ 'meets standards',
+             variable == 'pH' & value > 6 & value < 9  ~ 'meets standards',
+             variable == 'ODO mg/L' & value > 3 ~ 'meets standards',
+             variable == 'NH3 mg/L' & value < 17 ~ 'meets standards',
+             variable == 'Turbidity NTU' & value > 0 & value < 10 ~ 'meets standards',
+             variable == 'NitraLED mg/L' & value < 10 ~ 'meets standards',
+             variable == 'Temp °C' & value > 20 & value < 35 ~ 'meets standards',
+             variable == 'NH4+ -N mg/L' & value < 17 ~ 'meets standards',
+             variable == 'ORP mV' & value > 0 ~ 'meets standards',
+             TRUE ~ 'does not meet standards'
            ))
 #################################### SUD DATA BEGINS -- CLEANING AND MODIFICATIONS ------
 
@@ -202,8 +202,8 @@ ui <- dashboardPage(skin = 'black',
   ## Sidebar content
   sidebar <-dashboardSidebar( 
     sidebarMenu(
-      menuItem("About the Project", tabName = "overview", icon = icon("water")),
-      menuItem("Water Quality Comparison", tabName = "dashboard", icon = icon("th")),
+      menuItem("About the Project", tabName = "overview", icon = icon("home")),
+      menuItem("Water Quality Comparison", tabName = "dashboard", icon = icon("water")),
       menuItem("Trends", tabName = "trends", icon = icon("list-alt")),
       menuItem("Boxplots", tabName = 'boxplots', icon = icon("bar-chart-o")),
       menuItem('Predictive Models', tabName = "models", icon = icon("table"))
@@ -221,6 +221,14 @@ ui <- dashboardPage(skin = 'black',
                     solidHeader = TRUE,
                     width = 12,
                     background = "orange")
+              ),
+              fluidRow(
+                tabBox(
+                  
+                  id = "tabset2",
+                  tabPanel(title = "The project"),
+                  tabPanel(title = "Variables")
+                )
               ),
               fluidRow(
                 tabBox(title = "Who We Are",
@@ -249,7 +257,7 @@ ui <- dashboardPage(skin = 'black',
                 )
                 
               )),
-      
+      ###################################### water quality comparison tab
       tabItem(tabName = "dashboard",
               fluidRow(
                 box(title = "Variable Averages by Month",
@@ -310,7 +318,8 @@ ui <- dashboardPage(skin = 'black',
                                   choices = c("2020", "2021")),
                       selectInput("site4", "Site" ,
                                   choices = c("Wetland Basin 3", "Lagoon C"),
-                                  multiple = TRUE),
+                                  multiple = TRUE,
+                                  selected = "Wetland Basin 3"),
                       selectInput("variable4", "Variable",
                                   choices = c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
                                               "Temp °C", "NH4+ -N mg/L", "NH3 mg/L"))
@@ -399,7 +408,8 @@ ui <- dashboardPage(skin = 'black',
                               choices = c("2020", "2021")),
                   selectInput("site2", "Site" ,
                               choices = c("Wetland Basin 3", "Lagoon C"), 
-                              multiple = TRUE),
+                              multiple = TRUE,
+                              selected = "Wetland Basin 3"),
                   selectInput("variable2", "Variable",
                               choices = c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
                                           "Temp °C", "NH4+ -N mg/L", "NH3 mg/L"))
@@ -463,7 +473,7 @@ server <- function(input, output) {
       theme(axis.text = element_text(angle = 90))+
       labs(x = "Variable",
            y = "Units")+
-      scale_fill_manual(values = c(green = "darkgreen", red = "red"))+
+      scale_fill_manual(values = c(`meets standards` = "blue", `does not meet standards` = "red"))+
       facet_wrap(~`Site Name`)
    
   })
@@ -480,7 +490,7 @@ server <- function(input, output) {
       geom_col(aes(month, avg, fill = color), position = "dodge")+
       labs(x = "Month",
            y = "Unit")+
-      scale_fill_manual(values = c(green = "darkgreen", red = "red"))+
+      scale_fill_manual(values = c(`meets standards` = "blue", `does not meet standards` = "red"))+
       facet_wrap(~`Site Name`)
   })
   
