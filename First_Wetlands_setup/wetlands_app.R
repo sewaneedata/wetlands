@@ -6,7 +6,6 @@ library(lubridate)
 library(readxl)
 #install.packages("shinyWidgets")
 library(shinyWidgets)
-library(plotly)
 
 #Valid colors are: red, yellow, aqua, blue, light-blue, 
 #green, navy, teal, olive, lime, orange, fuchsia, purple, maroon, black
@@ -237,23 +236,25 @@ ui <- dashboardPage(skin = 'black',
                        width = 12,
                        tabPanel(title = "DataLab Fellows",
                                 fluidRow(column(6, h3("Lauren Hutchison C '22"),
-                                                p("Lauren Hutchison is from Aldie, VA and is an Environment & Sustainability major at Sewanee: The University of the South. She is a member of the Order of the Gown and a female athlete on the women's soccer team."),
+                                                p("Lauren Hutchison is from Aldie, VA and is an Environment & Sustainability major at Sewanee: The University of the South. She is a member of the Order of the Gown and played for the women's soccer team."),
                                                 br(),
                                                 h3("Harrison Lowery C '24"),
                                                 p("Harrison Lowery(C'24) is from Homewood, AL and is an English major at Sewanee: The University of the South. Harrison is a member of the Sewanee-Monteagle Rotary Club and a member of Phi Gamma Delta."),
                                                 br(),
                                                 h3("Tessa Shackelford C '24"),
-                                                p("Tessa Shackelford is from Sewanee, TN and is an Environment & Sustainability major at Sewanee: The University of the South. She is a member of the Order of the Gown, a site leader for the Bonner/ Canale program at the University farm, a female athlete on the women's tennis team, and a member of Theta Kappa Phi."
-                                                )))), 
+                                                p("Tessa Shackelford is from Sewanee, TN and is an Environment & Sustainability major at Sewanee: The University of the South. She is a member of the Order of the Gown, a site leader for the Bonner/Canale program at the university farm, a member of Theta Kappa Phi, and plays for the women's tennis team ."
+                                                )),
+                                         column(6, div(img(src = 'Lauren.png', height = 200, width = 200, align = "left"), style = "text-align: left;"))
+                                )), 
                        tabPanel(title = "Project Mentor",
                                 fluidRow(column(6, h3("Dr. Catherine Cavagnaro"),
                                                 p("Dr. Catherine Cavagnaro is a Professor of Mathematics at Sewanee: The University of the South, and the project mentor for the Sewanee Wetlands Project at DataLab. She holds a B.S from Santa Clara University and a Ph.D. from University of Illinois at Urbana-Champaign.")))),
                        tabPanel(title = "Community Partners",
                                 fluidRow(column(6, h3("Dr. Deborah McGrath"),
-                                                p("Dr. Deborah McGrath is a Professor of Biology and the Head Department Chair of Environment & Sustainability at Sewanee: The University of the South. She is also the Assistant Dean for the Sewanee Integrated Program in the Environment. Dr. McGrath is the project director at the Sewanee Wetland Research Station, and the community partner for the Sewanee Wetlands Project at DataLab.",
+                                                p("Dr. Deborah McGrath is a Professor of Biology and the Head Department Chair of Environment & Sustainability at Sewanee: The University of the South. She is also the Assistant Dean for the Sewanee Integrated Program in the Environment. Dr. McGrath is the project director for the Sewanee Wetland Research Station, and the community partner for the Sewanee Wetlands Project at DataLab.",
                                                   br(),
                                                   h3("Sewanee Utility District(SUD)"),
-                                                  p("The Sewanee Utility District of Franklin and Marion Counties treats and manages wastewater through a lagoon and spray field system. They provide potable water to Sewanee, Midway, Depwoods, and Jumpoff communities. The SUD has collected all data used in the Wetlands Projects' graphs and visuals.")))))
+                                                  p("The Sewanee Utility District of Franklin and Marion Counties treats and manages wastewater through a lagoon and spray field system. They provide potable water to Sewanee, Midway, Deepwoods, and Jumpoff communities. The SUD has collected all data used in the Wetlands Projects' graphs and visuals.")))))
                        
                 )
                 
@@ -264,12 +265,12 @@ ui <- dashboardPage(skin = 'black',
                 box(title = "Variable Averages by Month",
                     solidHeader = TRUE,
                     width = 12, 
-                    plotlyOutput("sond_cond"),
+                    plotOutput("sond_cond"),
                     background = "navy")),
               fluidRow( 
                  box(title = "Specified Variable Average by Month",
                      solidHeader = TRUE,
-                   plotlyOutput("avg_vari_site"),
+                   plotOutput("avg_vari_site"),
                     background = "navy"),
                 
               
@@ -304,7 +305,7 @@ ui <- dashboardPage(skin = 'black',
                       title = "Monthly Trends in Variables",
                       solidHeader = TRUE,
                       width = 6,
-                      plotlyOutput("trend_data"),
+                      plotOutput("trend_data"),
                       background = "blue"),
                     
                     box(
@@ -330,7 +331,7 @@ ui <- dashboardPage(skin = 'black',
                       box(title = "Daily Trends in Variables",
                           solidHeader = TRUE,
                           width = 6,
-                          plotlyOutput("trend_data2"),
+                          plotOutput("trend_data2"),
                           background = "maroon"),
                       
                       box(
@@ -363,7 +364,7 @@ ui <- dashboardPage(skin = 'black',
                       box(title = "Hourly Trends in Variables",
                           solidHeader = TRUE,
                           width = 6,
-                          plotlyOutput("trend_data3"),
+                          plotOutput("trend_data3"),
                           background = "olive"),
                       box(
                         title = "Select Hourly:",
@@ -396,14 +397,14 @@ ui <- dashboardPage(skin = 'black',
                 box(title = "Varience of Variables by Month",
                     solidHeader = TRUE,
                     width = 12,
-                  plotlyOutput("avg_boxplot"),
+                  plotOutput("avg_boxplot"),
                   background = "teal")),
                 fluidRow(
                 box(
                   title = "Select:",
                   background = "teal",
                   collapsible = TRUE,
-                  width = 6,
+                  width = 12,
                   solidHeader = TRUE,
                   selectInput("year2", "Year",
                               choices = c("2020", "2021")),
@@ -421,7 +422,7 @@ ui <- dashboardPage(skin = 'black',
                 box(title = "Predictive Models Using 2021 Data",
                     solidHeader = TRUE,
                     width = 12,
-                  plotlyOutput("predic_model"),
+                  plotOutput("predic_model"),
                     background = "purple")),
               
               fluidRow(
@@ -459,7 +460,7 @@ server <- function(input, output) {
   
    })
   
-  output$sond_cond <- renderPlotly({
+  output$sond_cond <- renderPlot({
     
     new_df<-all_data%>%
       group_by(`Site Name`, month, variable)%>%
@@ -473,14 +474,14 @@ server <- function(input, output) {
       geom_col(aes(variable, avg, fill = color), position = "dodge")+
       theme(axis.text = element_text(angle = 90))+
       labs(x = "Variable",
-           y = input$variable)+
+           y = "Units")+
       scale_fill_manual(values = c(`meets standards` = "blue", `does not meet standards` = "red"))+
       facet_wrap(~`Site Name`)
    
   })
   
   
-  output$avg_vari_site <- renderPlotly({
+  output$avg_vari_site <- renderPlot({
     avg_vari_site<-all_data%>%
       group_by(month, year, `Site Name`)%>%
       filter(year == input$year)%>%
@@ -490,12 +491,12 @@ server <- function(input, output) {
     ggplot(data = avg_vari_site)+
       geom_col(aes(month, avg, fill = color), position = "dodge")+
       labs(x = "Month",
-           y = input$variable)+
+           y = "Unit")+
       scale_fill_manual(values = c(`meets standards` = "blue", `does not meet standards` = "red"))+
       facet_wrap(~`Site Name`)
   })
   
-  output$trend_data <- renderPlotly({  
+  output$trend_data <- renderPlot({  
  
     ############################## month trends
     month_trend<-all_data%>%
@@ -527,7 +528,7 @@ server <- function(input, output) {
       geom_line()+
       theme(axis.text.x = element_text(angle = 90))+
       labs(x = "Month",
-           y = input$variable4) +
+           y = "Units") +
       xlim(1, 12) +
       scale_x_continuous(breaks=seq(1, 12, 1),
                          labels = c("January", "February", "March",
@@ -535,7 +536,7 @@ server <- function(input, output) {
                                     "November", "December"))
   })
 
-    output$trend_data2 <- renderPlotly({    
+    output$trend_data2 <- renderPlot({    
   
        ################################# daily trends
     daily_all_data <- all_data %>%
@@ -554,12 +555,12 @@ server <- function(input, output) {
       scale_y_continuous(breaks = seq(0,40,2))+
       scale_x_continuous(breaks = seq(0,30,2))+
       labs(x = "Day of the Month",
-           y = input$variable5)
+           y = "Units")
     
     
     
   })
-    output$trend_data3 <- renderPlotly({    
+    output$trend_data3 <- renderPlot({    
      
        ######################################## hourly trends
       time_attempt<-all_data %>%
@@ -573,7 +574,7 @@ server <- function(input, output) {
         geom_point()+
         geom_line()+
         labs(x = "Hour of the Day",
-             y = input$variable6,
+             y = "Units",
              color = "Date")
       
       
@@ -581,7 +582,7 @@ server <- function(input, output) {
     })
   
     ##################################################################### 
-  output$avg_boxplot <- renderPlotly({  
+  output$avg_boxplot <- renderPlot({  
     avg_boxplot <- all_data %>%
       filter(year == input$year2) %>%
       filter(`Site Name` %in% input$site2)%>%
@@ -597,10 +598,10 @@ server <- function(input, output) {
       geom_boxplot()+
       theme(axis.text = element_text(angle = 90))+
       labs(x = "Month",
-           y = input$variable2)
+           y = "Units")
   })
     #####################################################################  
-  output$predic_model <- renderPlotly({
+  output$predic_model <- renderPlot({
     
     avg_boxplot <- all_data %>%
       filter(`Site Name` == input$sitename3)%>%
@@ -625,7 +626,7 @@ server <- function(input, output) {
       geom_jitter(alpha = .3)+
       theme(axis.text.x = element_text(angle = 90))+
       labs(
-        y = input$variable3,
+           y = 'Units',
            x = 'Months')+
       geom_point(data = avg_predict, aes(x = month, y = avg), 
                  size = 2, color = 'red')+
