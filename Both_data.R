@@ -7,6 +7,7 @@ library(ggpubr)
 library(broom)
 library(AICcmodavg)
 library(readr)
+library(ggplot2)
 
 url<-"https://docs.google.com/spreadsheets/d/14nn7NWMBatbzcz9nqcTFzQghmzMUE2o0/edit?usp=sharing&ouid=104854259661631892531&rtpof=true&sd=true"
 sud <-gsheet2tbl(url)
@@ -308,7 +309,16 @@ vpd_avg<- sudhour2 %>%
 summarise(vpdavg = mean(`VPD Avg (Kpa)`)) 
 
 ggplot(data = vpd_avg, aes( x = mm, y = vpdavg))+
-  geom_col(fill = 'aquamarine3')
+  geom_col(fill = 'aquamarine3')+
+  scale_x_continuous(
+    breaks = seq_along(month.name), 
+    labels = month.name)+
+  theme(axis.text.x = element_text(angle = 90))+
+  ylim(0,.8)+
+  labs(title = "VPD Average per Month",
+       subtitle = 'At Sewanee Utility District',
+       y = 'Average VPD (Kpa)',
+       x = 'Months')
 
 # sud rain avg
 rain_avg <-  sudhour2 %>% 
@@ -317,7 +327,16 @@ rain_avg <-  sudhour2 %>%
   summarise(rain_avg = mean(`Rain (mm)`))
 
 ggplot(data = rain_avg, aes(x = mm, y = rain_avg))+
-  geom_col(fill = 'darkolivegreen3')
+  scale_x_continuous(
+    breaks = seq_along(month.name), 
+    labels = month.name)+
+  theme(axis.text.x = element_text(angle = 90))+
+  ylim(0,.15)+
+  geom_col(fill = 'darkolivegreen3')+
+labs(title = "Rainfall per Month",
+     subtitle = 'Average Rainfall at Sewanee Utility District',
+     y = 'Average Rainfall (mm)',
+     x = 'Months')
 #################################################    
 
 ####################################################
