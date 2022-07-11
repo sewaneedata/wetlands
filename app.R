@@ -168,7 +168,6 @@ sud3 <- sud3 %>%
   mutate(months = month(Dates))
 
 
-
 # OESS Precipitation and Temp data   ------
 rainfalldf1 <- rainfalldf
 
@@ -325,7 +324,12 @@ ui <- dashboardPage(skin = 'black',
                                   selected = "Wetland Basin 3"),
                       selectInput("variable4", "Variable",
                                   choices = c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
-                                              "Temp °C", "NH4+ -N mg/L", "NH3 mg/L"))
+                                              "Temp °C", "NH4+ -N mg/L", "NH3 mg/L")),
+                      checkboxInput("average_temp", "Average Temperature"),
+                      checkboxInput("average_rain", "Average Rainfall"),
+                      checkboxInput("total_rain", "Total Rainfall"),
+                      checkboxInput("solar", "Solar Measure")
+                      
                       
                     )),
                     tabPanel( "Daily",
@@ -440,7 +444,6 @@ ui <- dashboardPage(skin = 'black',
                   selectInput("variable3", "Variable",
                               choices = c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
                                           "Temp °C", "NH4+ -N mg/L", "NH3 mg/L"))
-                  
                 )))
       
       
@@ -524,9 +527,9 @@ server <- function(input, output) {
                                                               "December"),
                                 labels = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12))
     
-    ggplot(data = month_trend, aes(as.numeric(month), avg_month, color = site))+
-      geom_point()+
-      geom_line()+
+    ggplot()+
+      geom_point(data = month_trend, aes(as.numeric(month), avg_month, color = site))+
+      geom_line(data = month_trend, aes(as.numeric(month), avg_month, color = site))+
       theme(axis.text.x = element_text(angle = 90))+
       labs(x = "Month",
            y = input$variable4) +
@@ -535,6 +538,90 @@ server <- function(input, output) {
                          labels = c("January", "February", "March",
                                     "April", "May", "June", "July", "August", "September", "October",
                                     "November", "December"))
+
+    ############################## SUD DATA 
+    
+    tempmax <- rainfalldf1 %>% 
+      mutate(Month = factor(Month,
+                            levels = c('Jan', 'Feb', 
+                                       'Mar', 
+                                       'Apr', 
+                                       'May', 'Jun', 
+                                       'Jul', 'Aug', 'Sep', 
+                                       'Oct', 'Nov', 'Dec'))) %>% 
+      group_by(Month) %>% 
+      filter(year(dates) == 2021) %>% 
+      summarise(tempmax = mean(`High temp (F)`))
+    
+    # avg min temperature per month  # YES
+    tempmin <- rainfalldf1 %>%
+      mutate(Month = factor(Month,
+                            levels = c('Jan', 'Feb', 
+                                       'Mar', 
+                                       'Apr', 
+                                       'May', 'Jun', 
+                                       'Jul', 'Aug', 'Sep', 
+                                       'Oct', 'Nov', 'Dec'))) %>% 
+      group_by(Month) %>% 
+      filter(year(dates) == 2021) %>% 
+      summarise(tempmin = mean(`Low temp (F)`)) 
+    
+    # average temperature plot  # YES
+   aver_temp <- ggplot()+
+      geom_col(data = tempmax, aes(x = Month, y = tempmax), fill= 'blue')+
+      geom_col(data = tempmin, aes(x = Month, y = tempmin), fill = 'red')+
+      theme(axis.text.x = element_text(angle = 90))+
+      labs(title = 'Highest and Lowest Temperatures (2021)',
+           subtitle = 'Average Temperature (C) per Month ',
+           y = 'Average Temperature',
+           x = 'Months')
+
+    # total rainfall per month     # YES
+    totalrain <- rainfalldf1 %>% 
+      mutate(Month = factor(Month,
+                            levels = c('Jan', 'Feb', 
+                                       'Mar', 
+                                       'Apr', 
+                                       'May', 'Jun', 
+                                       'Jul', 'Aug', 'Sep', 
+                                       'Oct', 'Nov', 'Dec'))) %>% 
+      group_by(Month) %>% 
+      filter(year(dates)==2021) %>% 
+      summarise(totalrain = sum(na.rm = TRUE,(`rainfall (inches)`)))
+    
+    # total rainfall plot      # YES
+  total_rain  <- ggplot()+
+      geom_col(data = totalrain, aes( x= Month, y = totalrain),fill  = 'skyblue1')+
+      labs(title = 'TotalRainfall (2021)',
+           subtitle = 'Total Rainfall (in) per Month ',
+           y = 'Total Rainfall (in)',
+           x = 'Months')
+    rainfalldf1 <- rainfalldf1 %>% rename(rainfall = `rainfall (inches)`)
+    
+    # avg rainfall per month       YES
+    avgrain <- rainfalldf1 %>% 
+      mutate(Month = factor(Month,
+                            levels = c('Jan', 'Feb', 
+                                       'Mar', 
+                                       'Apr', 
+                                       'May', 'Jun', 
+                                       'Jul', 'Aug', 'Sep', 
+                                       'Oct', 'Nov', 'Dec'))) %>% 
+      group_by(Month) %>% 
+      filter(year(dates)==2021) %>% 
+      summarise( avgrain = mean(na.rm = TRUE,(`rainfall (inches)`)))
+    
+    # average rainfall per month plot
+  average_rain  <-ggplot()+  
+      geom_col(data =mean_sdrain, aes(x = Month, y = mean),
+               fill = 'blue', group = 1)+
+      geom_errorbar(data = mean_sdrain, aes(x = Month, ymax = mean+sd, width = .1, ymin = mean))+
+      labs(title = 'Average Rainfall (2021)',
+           subtitle = 'Average Rainfall (in) per Month ',
+           y = 'Average Rainfall (in)',
+           x = 'Months')
+    
+    
   })
 
     output$trend_data2 <- renderPlotly({    
