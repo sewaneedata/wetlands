@@ -7,6 +7,7 @@ library(ggpubr)
 library(broom)
 library(AICcmodavg)
 library(readr)
+library(ggplot2)
 
 url<-"https://docs.google.com/spreadsheets/d/14nn7NWMBatbzcz9nqcTFzQghmzMUE2o0/edit?usp=sharing&ouid=104854259661631892531&rtpof=true&sd=true"
 sud <-gsheet2tbl(url)
@@ -281,41 +282,63 @@ sudhour<- sud_hourly %>%
 
 # make a year column
 sudhour2 <- sudhour %>% 
-  mutate(yyyy = year(mdy_hm(Timestamp))) %>% 
+  mutate(yyyy = year(mdy_hm(Timestamp))) 
 bads <- which(is.na(sudhour2$yyyy))
+
 sudhour2$yyyy[bads]<-year(ymd_hms(sudhour2$Timestamp[bads]))        
 sudhour2[bads,]
 
+# month column
 sudhour2 <- sudhour2 %>% 
-mutate(mm = month(mdy_hm(Timestamp))) %>%
+mutate(mm = month(mdy_hm(Timestamp)))
 bads2 <- which(is.na(sudhour2$mm))
 sudhour2$mm[bads2]<-month(ymd_hms(sudhour2$Timestamp[bads2]))
 sudhour2[bads2,]
 
-# VPD avg
-sudhour2 %>% 
+# sud VPD avg
+vpd_avg<- sudhour2 %>% 
+  mutate(Month = factor(mm,
+  levels = c('Jan', 'Feb', 
+              'Mar', 
+             'Apr', 
+           'May', 'Jun', 
+          'Jul', 'Aug', 'Sep', 
+     'Oct', 'Nov', 'Dec'))) %>% 
   filter(yyyy == 2021) %>% 
+  group_by(mm) %>% 
+summarise(vpdavg = mean(`VPD Avg (Kpa)`)) 
 
-  summarise(vpdavg = mean(`VPD Avg (Kpa)`)) %>% 
-  mutate(mm = factor(mm,
-                        levels = c('January', 'February', 
-                                   'March', 
-                                   'April', 
-                                   'May', 'June', 
-                                   'July', 'August', 'September', 
-                                   'October', 'November', 'December'))) %>% 
-  na.omit()
+ggplot(data = vpd_avg, aes( x = mm, y = vpdavg))+
+  geom_col(fill = 'aquamarine3')+
+  scale_x_continuous(
+    breaks = seq_along(month.name), 
+    labels = month.name)+
+  theme(axis.text.x = element_text(angle = 90))+
+  ylim(0,.8)+
+  labs(title = "VPD Average per Month",
+       subtitle = 'At Sewanee Utility District',
+       y = 'Average VPD (Kpa)',
+       x = 'Months')
+
+# sud rain avg
+rain_avg <-  sudhour2 %>% 
+  filter(yyyy == 2021) %>% 
+  group_by(mm) %>% 
+  summarise(rain_avg = mean(`Rain (mm)`))
+
+ggplot(data = rain_avg, aes(x = mm, y = rain_avg))+
+  scale_x_continuous(
+    breaks = seq_along(month.name), 
+    labels = month.name)+
+  theme(axis.text.x = element_text(angle = 90))+
+  ylim(0,.15)+
+  geom_col(fill = 'darkolivegreen3')+
+labs(title = "Rainfall per Month",
+     subtitle = 'Average Rainfall at Sewanee Utility District',
+     y = 'Average Rainfall (mm)',
+     x = 'Months')
 #################################################    
-sudhour2 <- sudhour %>%
-  mutate(yyyy = year(mdy_hm(Timestamp))) %>%
-  bads <- which(is.na(sudhour2$yyyy))
-sudhour2$yyyy[bads]<-year(ymd_hms(sudhour2$Timestamp[bads]))
 
-# Create month column
-sudhour3 <- sudhour2 %>%
-  mutate(mm = month(mdy_hm(Timestamp))) %>%
-  bads <- which(is.na(sudhour3$mm))
-sudhour3$mm[bads]<-month(ymd_hms(sudhour3$Timestamp[bads]))
 ####################################################
 # Delta between each site
 

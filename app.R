@@ -217,44 +217,98 @@ ui <- dashboardPage(skin = 'black',
       # First tab content
       tabItem(tabName = "overview",
               fluidRow(
-                box(title = "Overview",
+                box(title = "Wetlands Project Overview",
                     solidHeader = TRUE,
                     width = 12,
                     background = "orange")
               ),
               fluidRow(
-                tabBox(
+                tabBox(title = "Our Project",
                   
                   id = "tabset2",
-                  tabPanel(title = "The project"),
-                  tabPanel(title = "Variables")
+                  width = 4,
+                  tabPanel(title = "Project Summary"),
+                  tabPanel(title = "Water Quality Variables",
+                           fluidRow(column(8, h3("Water Quality Variables and Criteria",
+                                                 br(),
+                                                 br(),
+                                                 br(),
+                                                 box(
+                                                   title = "Select Variable:",
+                                                   background = "light-blue",
+                                                   collapsible = TRUE,
+                                                   width = 10,
+                                                   
+                                                   solidHeader = TRUE,
+                                                   
+                                                   selectInput("variable10", "Variables",
+                                                               choices = c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
+                                                                           "Temp °C", "NH4+ -N mg/L", "NH3 mg/L" )))),
+                                                  
+                             
+                           ))),
+                  tabPanel(title = "Wetland Photos")
                 )
               ),
               fluidRow(
                 tabBox(title = "Who We Are",
                        id = "tabset1",
-                       width = 12,
+                       width = 8,
                        tabPanel(title = "DataLab Fellows",
-                                fluidRow(column(6, h3("Lauren Hutchison C '22"),
+                                fluidRow(column(3, 
+                                                fluidRow(tags$img(src = "Lauren.png", width="100%", alt="Lauren")),
+                                                fluidRow(tags$img(src = "Harrison.png", width="100%", alt="Harrison")),
+                                                fluidRow(tags$img(src = "Tessa.png", width="100%", alt="Tessa"))),
+                                         column(8, h3("Lauren Hutchison C '22"),
                                                 p("Lauren Hutchison is from Aldie, VA and is an Environment & Sustainability major at Sewanee: The University of the South. She is a member of the Order of the Gown and played for the women's soccer team."),
                                                 br(),
+                                                br(),
+                                                br(),
+                                                br(),
                                                 h3("Harrison Lowery C '24"),
-                                                p("Harrison Lowery(C'24) is from Homewood, AL and is an English major at Sewanee: The University of the South. Harrison is a member of the Sewanee-Monteagle Rotary Club and a member of Phi Gamma Delta."),
+                                                p("Harrison Lowery is from Homewood, AL and is an English major at Sewanee: The University of the South. Harrison is a member of the Sewanee-Monteagle Rotary Club and a member of Phi Gamma Delta."),
+                                                br(),
+                                                br(),
+                                                br(),
                                                 br(),
                                                 h3("Tessa Shackelford C '24"),
-                                                p("Tessa Shackelford is from Sewanee, TN and is an Environment & Sustainability major at Sewanee: The University of the South. She is a member of the Order of the Gown, a site leader for the Bonner/Canale program at the university farm, a member of Theta Kappa Phi, and plays for the women's tennis team ."
-                                                )),
-                                         column(6, div(img(src = 'Lauren.png', height = 200, width = 200, align = "left"), style = "text-align: left;"))
+                                                p("Tessa Shackelford is from Sewanee, TN and is an Environment & Sustainability major at Sewanee: The University of the South. 
+                                                  She is a member of the Order of the Gown, a site leader for the Bonner/Canale program at the university farm, a member of Theta Kappa Phi,
+                                                  and plays for the women's tennis team."
+                                                ))
                                 )), 
                        tabPanel(title = "Project Mentor",
-                                fluidRow(column(6, h3("Dr. Catherine Cavagnaro"),
-                                                p("Dr. Catherine Cavagnaro is a Professor of Mathematics at Sewanee: The University of the South, and the project mentor for the Sewanee Wetlands Project at DataLab. She holds a B.S from Santa Clara University and a Ph.D. from University of Illinois at Urbana-Champaign.")))),
+                                fluidRow(
+                                  column(3,
+                                         fluidRow(tags$img(src = "Catherine.png", width = "90%", alt = "Catherine"))),
+                                  column(5, h3("Dr. Catherine Cavagnaro", align = "left")),
+                                  br(),
+                                  br(),
+                                  br(),
+                                  p("Dr. Catherine Cavagnaro is a Professor of Mathematics at Sewanee: 
+                                                  The University of the South, and the project mentor for the Sewanee Wetlands Project at DataLab. 
+                                                  She holds a B.S from Santa Clara University and a Ph.D. from University of Illinois 
+                                                  at Urbana-Champaign.", align = "left"))),
                        tabPanel(title = "Community Partners",
-                                fluidRow(column(6, h3("Dr. Deborah McGrath"),
-                                                p("Dr. Deborah McGrath is a Professor of Biology and the Head Department Chair of Environment & Sustainability at Sewanee: The University of the South. She is also the Assistant Dean for the Sewanee Integrated Program in the Environment. Dr. McGrath is the project director for the Sewanee Wetland Research Station, and the community partner for the Sewanee Wetlands Project at DataLab.",
-                                                  br(),
-                                                  h3("Sewanee Utility District(SUD)"),
-                                                  p("The Sewanee Utility District of Franklin and Marion Counties treats and manages wastewater through a lagoon and spray field system. They provide potable water to Sewanee, Midway, Deepwoods, and Jumpoff communities. The SUD has collected all data used in the Wetlands Projects' graphs and visuals.")))))
+                                fluidRow(
+                                  column(3, 
+                                         fluidRow(tags$img(src = "Deb.png", width = "100%", alt = "Deb")),
+                                         fluidRow(tags$img(src = "SUD .png", width = "100%", alt = "SUD"))),
+                                  column(8,
+                                         h3("Dr. Deborah McGrath"),
+                                         p("Dr. Deborah McGrath is a Professor of Biology and the Head Department Chair of Environment & Sustainability at Sewanee: 
+                                                  The University of the South. She is also the Assistant Dean for the Sewanee Integrated Program in the Environment. 
+                                                  Dr. McGrath is the project director for the Sewanee Wetland Research Station, and the community partner 
+                                                  for the Sewanee Wetlands Project at DataLab.",
+                                           br(),
+                                           br(),
+                                           br(),
+                                           br(),
+                                           
+                                           h3("Sewanee Utility District (SUD)"),
+                                           p("The Sewanee Utility District of Franklin and Marion Counties treats and manages wastewater through a lagoon and spray field system. 
+                                                    They provide potable water to Sewanee, Midway, Deepwoods, and Jumpoff communities. 
+                                                    The SUD has collected all data used in the Wetlands Projects' graphs and visuals.")))))
                        
                 )
                 
