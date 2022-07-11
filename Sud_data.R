@@ -160,7 +160,7 @@ tempmin <- rainfalldf1 %>%
   filter(year(dates) == 2021) %>% 
   summarise(tempmin = mean(`Low temp (F)`)) 
 
-# average temperature plot  # YES
+# average temperature plot min/max # YES
 ggplot()+
   geom_col(data = tempmax, aes(x = Month, y = tempmax), fill= 'blue')+
   geom_col(data = tempmin, aes(x = Month, y = tempmin), fill = 'red')+
@@ -205,7 +205,7 @@ avgrain <- rainfalldf1 %>%
   filter(year(dates)==2021) %>% 
   summarise(avgrain = mean(na.rm = TRUE,(`rainfall (inches)`)))
 
-# average rainfall per month plot
+# average rainfall per month plot with SD
 ggplot()+  
   geom_col(data =mean_sdrain, aes(x = Month, y = mean),
            fill = 'blue', group = 1)+
@@ -305,3 +305,4 @@ summary(tmax_df)
 # temp min anova test
 tmin_df <- aov(`Low temp (F)`~ Month, data = rainfalldf1)
 summary(tmin_df)
+
