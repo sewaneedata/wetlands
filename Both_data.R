@@ -68,7 +68,6 @@ sud<-sud2%>%
   mutate(month = month.name[month])%>%
   mutate(year = year(Date))
 
-
 sond2<-sond2%>%
   mutate(month = month(Date))%>%
   mutate(month = month.name[month])%>%
@@ -97,6 +96,7 @@ avg_boxplot <- all_data %>%
                                    'October', 'November', 'December'))) %>% 
   na.omit()
 
+# boxplot of turbidity
 #substr(month,1,1),
 ggplot(data = avg_boxplot, aes(x = month, y = as.numeric(value)))+
   geom_boxplot()+
@@ -107,8 +107,6 @@ ggplot(data = avg_boxplot, aes(x = month, y = as.numeric(value)))+
   theme(axis.text.x = element_text(angle = 90))+
   facet_wrap(~`Site Name`)
 
-
-
 # code for for predictive model for turbidity
 avg_turb <- avg_boxplot %>% 
   filter(year == 2021) %>% 
@@ -117,9 +115,7 @@ filter(variable =='Turbidity NTU') %>%
   #filter(`Site Name` == 'Wetland Basin 3') %>% 
   summarise(avgturb = mean(as.numeric(value)))
 
-
-
-# predictive model for turbidity
+# predictive model for turbidity plot
 ggplot(data = avg_boxplot, aes( x= (month), y = as.numeric(value)))+
   geom_point()+
    theme(axis.text.x = element_text(angle = 90))+
@@ -133,9 +129,8 @@ ggplot(data = avg_boxplot, aes( x= (month), y = as.numeric(value)))+
             size = .5, color = 'blue', group =1)
   #ylim(0,125)
 
-
-# Anova Test
-
+#######################################################
+################### Anova Test ########################
 
 # pH anova test
 ph_df <- all_data %>%
@@ -239,7 +234,7 @@ nh4_df <- all_data %>%
 nh4_df <- aov(value ~ month, data = nh4_df)
 summary(nh4_df)
 
-# NH3 mg/L
+# NH3 mg/L anova test
 nh3_df <- all_data %>%
   filter( variable == 'NH3 mg/L') %>%
   filter(year == 2021) %>% 
@@ -254,31 +249,24 @@ summary(nh3_df)
 url5 <- "https://docs.google.com/spreadsheets/d/14nn7NWMBatbzcz9nqcTFzQghmzMUE2o0/edit#gid=571749034"
 sud_hourly<-gsheet2tbl(url5)
 
+# number of missing data
 errors <- all_data %>% 
   filter(value == 'SENSOR FAILURE') %>% 
   filter(year == 2021) %>% 
   group_by(variable, month) %>% 
 tally()
-
+# plot of missing data
 ggplot(data = errors, aes( x = variable, y = n))+
   geom_col()+
   facet_wrap(~month)
   
-  
- 
-all_data %>% 
-  filter(`Site Name` == 'Wetland Basin 3') %>% 
-  tally() # 124,202
-all_data %>% 
-  filter(`Site Name` == 'Lagoon C') %>% 
-  tally() # 122,976
 #####################################################
 url5 <- "https://docs.google.com/spreadsheets/d/14nn7NWMBatbzcz9nqcTFzQghmzMUE2o0/edit#gid=571749034"
 sud_hourly<-gsheet2tbl(url5)
 
-#select what ya need
+# select what ya need
 sudhour<- sud_hourly %>% 
-  select(Timestamp, `VPD Avg (Kpa)`, `Rain (mm)`)
+  select(Timestamp, `VPD Avg (Kpa)`, `Rain (mm)`, `Solar Total (MJ/m²)`)
 
 # make a year column
 sudhour2 <- sudhour %>% 
@@ -307,7 +295,7 @@ vpd_avg<- sudhour2 %>%
   filter(yyyy == 2021) %>% 
   group_by(mm) %>% 
 summarise(vpdavg = mean(`VPD Avg (Kpa)`)) 
-
+# plot of average VPD
 ggplot(data = vpd_avg, aes( x = mm, y = vpdavg))+
   geom_col(fill = 'aquamarine3')+
   scale_x_continuous(
@@ -315,17 +303,35 @@ ggplot(data = vpd_avg, aes( x = mm, y = vpdavg))+
     labels = month.name)+
   theme(axis.text.x = element_text(angle = 90))+
   ylim(0,.8)+
-  labs(title = "VPD Average per Month",
+  labs(title = "VPD Average per Month (2021)",
        subtitle = 'At Sewanee Utility District',
        y = 'Average VPD (Kpa)',
        x = 'Months')
 
-# sud rain avg
+# solar total 
+solar_avg <- sudhour2 %>% 
+  filter(yyyy == 2021) %>% 
+  group_by(mm) %>% 
+  summarise(solar_avg = mean(`Solar Total (MJ/m²)`))
+# graph of average solar total 
+ggplot(data = solar_avg, aes(x = mm, y = solar_avg)) +
+  geom_col(fill = 'yellow3')+
+  scale_x_continuous(
+    breaks = seq_along(month.name), 
+    labels = month.name)+
+  theme(axis.text.x = element_text(angle = 90))+
+  
+  labs(title = "Solar Total Average per Month (2021)",
+       subtitle = 'At Sewanee Utility District',
+       y = 'Solar Total (MJ/m2)',
+       x = 'Months')
+
+# SUD rain avg
 rain_avg <-  sudhour2 %>% 
   filter(yyyy == 2021) %>% 
   group_by(mm) %>% 
   summarise(rain_avg = mean(`Rain (mm)`))
-
+#  SUD average rainfall
 ggplot(data = rain_avg, aes(x = mm, y = rain_avg))+
   scale_x_continuous(
     breaks = seq_along(month.name), 
@@ -333,26 +339,49 @@ ggplot(data = rain_avg, aes(x = mm, y = rain_avg))+
   theme(axis.text.x = element_text(angle = 90))+
   ylim(0,.15)+
   geom_col(fill = 'darkolivegreen3')+
-labs(title = "Rainfall per Month",
+labs(title = "Rainfall per Month (2021)",
      subtitle = 'Average Rainfall at Sewanee Utility District',
      y = 'Average Rainfall (mm)',
      x = 'Months')
+
+oessrain <- mean_sdrain %>% 
+  select(mean, Month)
+
+# rainfall in SUD and OESS
+ggplot()+
+  geom_col(data = oessrain, aes(x = Month, y = mean), fill = 'red')+
+  geom_col(data = rain_avg, aes( x = mm, y = rain_avg), fill = 'blue')+
+  labs(title = 'Average Rainfall per Month (2021)',
+       subtitle = 'Sewanee Utility District vs. OESS',
+       y = 'Average Rain (mm)', 
+       x = 'Month')+
+  theme(axis.text.x = element_text(angle = 90))
+ 
 #################################################    
 
 ####################################################
-# Delta between each site
+############ Delta between each site ###############
 
 all_data %>% 
   filter(`Site Name` == 'Lagoon C') %>% 
   filter(variable == 'Cond µS/cm') %>% 
-  tally()
+tally()
 all_data %>% 
   filter(`Site Name` == 'Wetland Basin 3') %>% 
-  filter(variable == 'Cond µS/cm' ) %>% 
+  filter(variable == 'Cond µS/cm' ) %>%
   tally()
+
 # Basin 3: NitraLed: 7306, NH4: 7306, NH3: 7306, Cond: 7306
 # Lagoon C: Nitraled: 7686, NH4: 0, NH3: 0, Cond: 7686
 # missing variables: 17,272: lagoon C has 380 more rows per variable
 
-
+dfdelta <- all_data %>% 
+  select(month, `Time (HH:mm:ss)`, variable, `Site Name`, value, year, Date) %>%
+  group_by( `Time (HH:mm:ss)` ) %>%
+  mutate(condbasin = 
+           
+           dfdelta[dfdelta$`Time (HH:mm:ss)` == `Time (HH:mm:ss)`
+                   &dfdelta$variable == 'Cond µS/cm'
+                   &dfdelta$`Site Name` == 'Wetland Basin 3'
+                   &dfdelta$Date == Date]$value[1])
 
