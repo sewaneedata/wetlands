@@ -1,0 +1,427 @@
+library(tidyverse) 
+library(gsheet)
+library(lubridate)
+library(data.table)
+library(readxl)
+library(ggpubr)
+library(broom)
+library(AICcmodavg)
+library(readr)
+library(ggplot2)
+
+url<-"https://docs.google.com/spreadsheets/d/14nn7NWMBatbzcz9nqcTFzQghmzMUE2o0/edit?usp=sharing&ouid=104854259661631892531&rtpof=true&sd=true"
+sud <-gsheet2tbl(url)
+url2 <- 'https://docs.google.com/spreadsheets/d/1WdrZuZP9J6Im4KQdo6MudPQC4Fwf13rD/edit?usp=sharing&ouid=104854259661631892531&rtpof=true&sd=true'
+sond<-gsheet2tbl(url2)
+url3 <- "https://docs.google.com/spreadsheets/d/1eRF3RnsWTt6ObsY6hlgi6jOjvliS1Gn5/edit#gid=200414766"
+lagoonC<-gsheet2tbl(url3)
+lagoonC
+
+######## CLEAN THE DATA #######################
+
+names(sud)
+sond<-sond%>%
+  rename(Date = `Date (MM/DD/YYYY)`)
+
+sud<-sud%>%
+  rename(Date = `Date Values Reflect`)
+
+sud<-sud %>%
+  filter(Date != "MISSING DATA" | Date != "NO POWER - AERATOR INSTALL")
+
+library(lubridate)
+sud2 <- sud
+sud2$Date <- mdy(sud$Date)
+
+lagoonC<-lagoonC%>%
+  rename(Date = `Date (MM/DD/YYYY)`)
+
+lagoonC<-lagoonC %>%
+  filter(Date != "MISSING DATA - POWER ISSUE" | Date != "SONDES AT WATSON RESEARCH SITE" | Date != "DAMAGED COND/TEMP SENSOR CAUSED FAULT THAT HAULTED LOGGING")
+
+############FIX THE DATES #####################
+
+sond$Date <- mdy(sond$Date)
+
+sud<-sud2%>%
+  filter(Date >= "2020-10-19")
+
+lagoonC$Date <- mdy(lagoonC$Date)
+
+lagoonC<-lagoonC%>%
+  filter(year(as_date(Date)) != 2022)
+
+############ MELT THE DATA ######################
+
+lagoonC2<-melt(data = as.data.table(lagoonC),
+               id.vars= 1:4,
+               measure.vars= 5:ncol(lagoonC))
+
+sond2<-melt(data = as.data.table(sond),
+            id.vars= 1:4,
+            measure.vars= 5:ncol(sond))
+
+############# ADD THE MONTH AND YEAR COLUMNS ###############
+
+sud<-sud2%>%
+  mutate(month = month(Date))%>%
+  mutate(month = month.name[month])%>%
+  mutate(year = year(Date))
+
+sond2<-sond2%>%
+  mutate(month = month(Date))%>%
+  mutate(month = month.name[month])%>%
+  mutate(year = year(Date))
+
+lagoonC2<-lagoonC2%>%
+  mutate(month = month(Date))%>%
+  mutate(month = month.name[month])%>%
+  mutate(year = year(Date))
+
+########## combine the data sets ##################
+all_data<-rbind(lagoonC2, sond2)
+
+###################################################
+
+box_turb <- all_data %>%
+  filter(year == year)%>%
+  filter(year == 2021) %>% 
+  filter(variable == 'Turbidity NTU') %>% 
+  mutate(month= factor(month,
+                        levels = c('January', 'February', 
+                                   'March', 
+                                   'April', 
+                                   'May', 'June', 
+                                   'July', 'August', 'September', 
+                                   'October', 'November', 'December'))) %>% 
+  na.omit()
+
+# boxplot of turbidity
+#substr(month,1,1),
+ggplot(data = box_turb, aes(x = month, y = as.numeric(value)))+
+  geom_boxplot()+
+  labs(title = 'Variance of Turbidity (2021)',
+       subtitle = 'Turbidity (NTU) in Lagoon C and Basin 3', 
+       y = 'Turbidity NTU', 
+       x = 'Months')+
+  theme(axis.text.x = element_text(angle = 90))+
+  facet_wrap(~`Site Name`)
+
+# code for for predictive model for turbidity
+avg_turb <- box_turb %>% 
+  filter(year == 2021) %>% 
+  group_by(month) %>% 
+filter(variable =='Turbidity NTU') %>% 
+  #filter(`Site Name` == 'Wetland Basin 3') %>% 
+  summarise(avgturb = mean(as.numeric(value)))
+
+# predictive model for turbidity plot
+ggplot(data = box_turb, aes( x= (month), y = as.numeric(value)))+
+  geom_point()+
+   theme(axis.text.x = element_text(angle = 90))+
+  labs(title = 'Predicted Turbidity Using 2021',
+       subtitle = 'Turbidity (NTU) Predicted per Month',
+       y = 'Turbidity NTU',
+       x = 'Months')+
+  geom_point(data = avg_turb, aes(x = month, y = avgturb), 
+             size = 2, color = 'red')+
+  geom_line(data = avg_turb, aes(x = month, y = avgturb), 
+            size = .5, color = 'blue', group =1)
+  #ylim(0,125)
+
+#######################################################
+################### Anova Test ########################
+
+# pH anova test
+anv_ph <- all_data %>%
+  filter(  variable == "pH" ) %>%
+  filter(year == 2021) %>% 
+  rename( "Site" = `Site Name`) %>%
+  mutate( Site = factor(Site)) %>% 
+  na.omit()
+
+anv_ph <- aov( value ~ Site + month, data = anv_ph)
+  summary(ph_anv)
+TukeyHSD(ph_anv)
+
+# turbidity anova test  
+anv_turb <- all_data %>%
+  filter(year == 2021) %>% 
+  filter(  variable == 'Turbidity NTU' ) %>%
+  rename( "Site" = `Site Name`) %>%
+  mutate( Site = factor(Site)) %>% 
+  na.omit()
+
+anv_turb <- aov( value ~ Site + month, data = anv_turb )
+summary(anv_turb)
+
+# conductivity anova test
+anv_cond <- all_data %>%
+  filter( variable == 'Cond µS/cm') %>%
+  filter(value != 'SENSOR FAILURE') %>% 
+  filter(year == 2021) %>% 
+  rename( "Site" = `Site Name`) %>%
+  mutate( Site = factor(Site)) %>% 
+  na.omit
+
+anv_cond <- aov( value ~ Site + month, data = anv_cond)
+summary(anv_cond)
+
+# ODO anova test
+anv_odo <- all_data %>%
+filter( variable == 'ODO mg/L') %>%
+  filter(year == 2021) %>% 
+  rename( "Site" = `Site Name`) %>%
+  mutate( Site = factor(Site)) %>% 
+  na.omit()
+
+anv_odo <- aov(value ~ Site + month, data = anv_odo)
+summary(anv_odo)
+
+# ORP mv anova test
+anv_orp <- all_data %>%
+  filter( variable == 'ORP mV') %>%
+  filter(year == 2021) %>% 
+  rename( "Site" = `Site Name`) %>%
+  mutate( Site = factor(Site)) %>% 
+  na.omit()
+
+anv_orp <- aov(value ~ Site + month, data = anv_orp)  
+summary(anv_orp)  
+
+# SpCond µS/cm anova test
+anv_spcond <- all_data %>%
+  filter( variable == 'ORP mV') %>%
+  filter(year == 2021) %>% 
+  rename( "Site" = `Site Name`) %>%
+  mutate( Site = factor(Site)) %>% 
+  na.omit()
+
+anv_spcond <- aov(value ~ Site + month, data = anv_spcond)
+summary(anv_spcond)
+
+# NitraLED mg/L anova test
+anv_nitra <- all_data %>%
+  filter( variable == 'ORP mV') %>%
+  filter(year == 2021) %>% 
+  rename( "Site" = `Site Name`) %>%
+  mutate( Site = factor(Site)) %>% 
+  na.omit()
+
+anv_nitra <- aov(value ~ Site + month, data = anv_nitra)
+summary(anv_nitra)
+
+# Water temp anova test 
+anv_temp_c <- all_data %>%
+  filter( variable == 'Temp °C') %>%
+  filter(year == 2021) %>% 
+  filter(value != 'SENSOR FAILURE') %>% 
+  rename( "Site" = `Site Name`) %>%
+  mutate( Site = factor(Site)) %>% 
+  na.omit()
+
+anv_temp_c <- aov(value ~ Site + month, data = anv_temp_c)
+summary(anv_temp_c)
+
+# NH4+ -N mg/L Anova Test
+anv_nh4 <- all_data %>%
+  filter( variable == 'NH4+ -N mg/L') %>%
+  filter(year == 2021) %>% 
+  filter(value != 'SENSOR FAILURE') %>% 
+  rename( "Site" = `Site Name`) %>%
+  mutate( Site = factor(Site)) %>% 
+  na.omit()
+
+anv_nh4 <- aov(value ~ month, data = anv_nh4)
+summary(anv_nh4)
+
+# NH3 mg/L anova test
+anv_nh3 <- all_data %>%
+  filter( variable == 'NH3 mg/L') %>%
+  filter(year == 2021) %>% 
+  filter(value != 'SENSOR FAILURE') %>% 
+  rename( "Site" = `Site Name`) %>%
+  mutate( Site = factor(Site)) %>% 
+  na.omit()
+
+anv_nh3 <- aov(value ~ month, data =anv_nh3)
+summary(anv_nh3)
+
+###################################################3
+url5 <- "https://docs.google.com/spreadsheets/d/14nn7NWMBatbzcz9nqcTFzQghmzMUE2o0/edit#gid=571749034"
+sud_hourly<-gsheet2tbl(url5)
+
+# number of missing data
+errors <- all_data %>% 
+  filter(value == 'SENSOR FAILURE') %>% 
+  filter(year == 2021) %>% 
+  group_by(variable, month) %>% 
+tally()
+# plot of missing data
+ggplot(data = errors, aes( x = variable, y = n))+
+  geom_col()+
+  facet_wrap(~month)
+  
+#####################################################
+url5 <- "https://docs.google.com/spreadsheets/d/14nn7NWMBatbzcz9nqcTFzQghmzMUE2o0/edit#gid=571749034"
+sud_hourly<-gsheet2tbl(url5)
+
+# select what ya need
+sud_hourly<- sud_hourly %>% 
+  select(Timestamp, `VPD Avg (Kpa)`, `Rain (mm)`, `Solar Total (MJ/m²)`)
+
+# make a year column
+sudhour<- sud_hourly %>% 
+  mutate(yyyy = year(mdy_hm(Timestamp))) 
+bads <- which(is.na(sudhour$yyyy))
+
+sudhour$yyyy[bads]<-year(ymd_hms(sudhour$Timestamp[bads]))        
+sudhour[bads,]
+
+# month column
+sudhour <- sudhour %>% 
+mutate(mm = month(mdy_hm(Timestamp)))
+bads2 <- which(is.na(sudhour$mm))
+sudhour$mm[bads2]<-month(ymd_hms(sudhour$Timestamp[bads2]))
+sudhour[bads2,]
+
+# sud VPD avg
+avg_vpd<- sudhour %>% 
+  mutate(Month = factor(mm,
+  levels = c('Jan', 'Feb', 
+              'Mar', 
+             'Apr', 
+           'May', 'Jun', 
+          'Jul', 'Aug', 'Sep', 
+     'Oct', 'Nov', 'Dec'))) %>% 
+  filter(yyyy == 2021) %>% 
+  group_by(mm) %>% 
+summarise(vpdavg = mean(`VPD Avg (Kpa)`)) 
+
+# plot of average VPD
+ggplot(data = avg_vpd, aes( x = mm, y = vpdavg))+
+  geom_col(fill = 'aquamarine3')+
+  scale_x_continuous(
+    breaks = seq_along(month.name), 
+    labels = month.name)+
+  theme(axis.text.x = element_text(angle = 90))+
+  ylim(0,.8)+
+  labs(title = "VPD Average per Month (2021)",
+       subtitle = 'At Sewanee Utility District',
+       y = 'Average VPD (Kpa)',
+       x = 'Months')
+
+# solar total 
+avg_solar <- sudhour%>% 
+  filter(yyyy == 2021) %>% 
+  group_by(mm) %>% 
+  summarise(avgsolar = mean(`Solar Total (MJ/m²)`))
+
+# graph of average solar total 
+ggplot(data = avg_solar, aes(x = mm, y = avgsolar)) +
+  geom_col(fill = 'yellow3')+
+  scale_x_continuous(
+    breaks = seq_along(month.name), 
+    labels = month.name)+
+  theme(axis.text.x = element_text(angle = 90))+
+  
+  labs(title = "Solar Total Average per Month (2021)",
+       subtitle = 'At Sewanee Utility District',
+       y = 'Solar Total (MJ/m2)',
+       x = 'Months')
+
+# SUD rain avg
+avg_rain <-  sudhour %>% 
+  filter(yyyy == 2021) %>% 
+  group_by(mm) %>% 
+  summarise(avgrain = mean(`Rain (mm)`))
+
+#  SUD average rainfall
+ggplot(data = avg_rain, aes(x = mm, y = avgrain))+
+  scale_x_continuous(
+    breaks = seq_along(month.name), 
+    labels = month.name)+
+  theme(axis.text.x = element_text(angle = 90))+
+  ylim(0,.15)+
+  geom_col(fill = 'darkolivegreen3')+
+labs(title = "Rainfall per Month (2021)",
+     subtitle = 'Average Rainfall at Sewanee Utility District',
+     y = 'Average Rainfall (mm)',
+     x = 'Months')
+
+oess_rain <- mean_sdrain %>% 
+  select(mean, Month)
+
+# rainfall in SUD and OESS
+ggplot()+
+  geom_col(data = oess_rain, aes(x = Month, y = mean), fill = 'red')+
+  geom_col(data = avg_rain, aes( x = mm, y = avgrain), fill = 'blue')+
+  labs(title = 'Average Rainfall per Month (2021)',
+       subtitle = 'Sewanee Utility District vs. OESS',
+       y = 'Average Rain (mm)', 
+       x = 'Month')+
+  theme(axis.text.x = element_text(angle = 90))
+ 
+# do a total rainfall comparison
+#################################################    
+
+####################################################
+############ Delta between each site ###############
+
+all_data %>% 
+  filter(`Site Name` == 'Lagoon C') %>% 
+  filter(variable == 'Cond µS/cm') %>% 
+tally()
+all_data %>% 
+  filter(`Site Name` == 'Wetland Basin 3') %>% 
+  filter(variable == 'Cond µS/cm' ) %>%
+  tally()
+
+# Basin 3: NitraLed: 7306, NH4: 7306, NH3: 7306, Cond: 7306
+# Lagoon C: Nitraled: 7686, NH4: 0, NH3: 0, Cond: 7686
+# missing variables: 17,272: lagoon C has 380 more rows per variable
+
+# code for delta between Wetland Basin 3 and Lagoon C
+all_data2 <- 
+  all_data %>% 
+  mutate(dt = lubridate::as_datetime(paste(Date, `Time (HH:mm:ss)`))) %>% 
+  select(month, dt, variable, `Site Name`, value, year, Date) %>%
+  group_by(variable, dt ) %>%
+  #group_by( `Time (HH:mm:ss)` ) %>%
+  mutate(value_c = ifelse(length(which(`Site Name` == 'Lagoon C')) > 0, 
+                      value[`Site Name` == 'Lagoon C'],
+                      NA),
+         value_3 = ifelse(length(which(`Site Name` == 'Wetland Basin 3')) > 0, 
+                          value[`Site Name` == 'Wetland Basin 3'],
+                          NA)) %>% 
+  mutate(delta = as.numeric(value_3) - as.numeric(value_c)) %>% 
+  ungroup()
+
+all_data2[603:631,] %>% as.data.frame
+all_data2 %>% head(10)
+all_data2$delta %>% hist
+all_data2$delta         
+length(which(is.na(all_data2$delta))) / nrow(all_data2)
+
+
+ggplot(data = meandelta, aes( x = Month, y = deltacond))+
+  geom_col(fill = 'red')
+
+# mean of the delta for each variable 
+deltatotal <- all_data2 %>% 
+  filter(year == 2021) %>% 
+  group_by(variable, month) %>% 
+  filter(variable == 'Turbidity NTU') %>% 
+  summarise(meandelta= mean(delta, na.rm = TRUE)) %>% 
+  mutate(Month = factor(month,
+                        levels = c(  
+                          'January', 'February', 'March' ,'April',
+                          'May', 'June', 'July', 'August', 'September', 
+                          'October', 'November', 'December'))) 
+ggplot(data = deltatotal, aes(x = Month, y = meandelta))+
+  geom_col(color = 'red')+
+  theme(axis.text.x = element_text(angle = 90))
+
+
+          
+           
