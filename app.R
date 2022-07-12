@@ -226,27 +226,26 @@ ui <- dashboardPage(skin = 'black',
                 tabBox(title = "Our Project",
                   
                   id = "tabset2",
-                  width = 4,
+                  width = 10,
                   tabPanel(title = "Project Summary"),
                   tabPanel(title = "Water Quality Variables",
-                           fluidRow(column(8, h3("Water Quality Variables and Criteria",
-                                                 br(),
-                                                 br(),
-                                                 br(),
+                           fluidRow(column(12, h3("Water Quality Variables and Criteria"), br())),
+                           fluidRow(column(4,
                                                  box(
                                                    title = "Select Variable:",
                                                    background = "light-blue",
                                                    collapsible = TRUE,
-                                                   width = 10,
+                                                   width = 8,
                                                    
                                                    solidHeader = TRUE,
                                                    
                                                    selectInput("variable10", "Variables",
                                                                choices = c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
-                                                                           "Temp °C", "NH4+ -N mg/L", "NH3 mg/L" )))),
+                                                                           "Temp °C", "NH4+ -N mg/L", "NH3 mg/L" )))
+                                           
                                                   
                              
-                           ))),
+                           ), column(8, textOutput("variable10")))),
                   tabPanel(title = "Wetland Photos")
                 )
               ),
@@ -517,6 +516,73 @@ server <- function(input, output) {
     
   
    })
+  
+  
+  output$variable10 <- renderText({
+    if( input$variable10 == "Cond µS/cm"){
+      "Conductivity is a measure of the ability of water to pass an electrical current. 
+    Conductivity in water is affected by the presence of inorganic dissolved solids
+Conductivity is also affected by temperature:
+the warmer the water, the higher the conductivity.
+The conductivity of rivers in the United States generally ranges from 50 to 1500 [µs/cm]."
+    } else if( input$variable10 == "ORP mV" ){
+      "Oxidation-reduction (redox) reactions control many chemical and biochemical processes
+    in both nature and engineered systems, such as water treatment processes.
+    ORP readings can provide water utility operators with beneficial water quality 
+    information such as the effectiveness of disinfectant and microorganism kill rates. 
+ORP values would ideally be positive. 
+    Here, the solution can undergo nitrogen transformation processes and become more aerobic."
+    } else if( input$variable10 == "pH"){
+      "pH is an expression of hydrogen ion concentration in water. The term is used to indicate basicity or acidity 
+    of a solution on a scale of 0 to 14, with pH 7 being neutral. U.S. EPA water quality criteria 
+    for pH in freshwater suggest a range of 6.5 to 9."
+    } else if(input$variable10 == "Turbidity NTU"){
+      "Turbidity is a measure of water clarity and
+    how much the material suspended in water decreases the passage of light through the water.
+    Turbidity can be useful as an indicator of the effects of runoff from construction, agricultural practices, logging activity, discharges, and other sources.
+Turbidity is closely related to stream flow and velocity and should be correlated with these factors."
+    } else if(input$variable10 == "NitraLED mg/L"){
+      "Nitrates are a form of nitrogen, which is found in several different forms in terrestrial and aquatic ecosystems.
+    Nitrates are essential plant nutrients, but in excess amounts they can cause significant water quality problems. 
+Together with phosphorus, nitrates in excess amounts can accelerate eutrophication, 
+causing dramatic increases in aquatic plant growth and changes in the types of plants and animals that live in the stream.
+Excess nitrates can cause hypoxia (low levels of dissolved oxygen) 
+and can become toxic to warm-blooded animals at higher concentrations (10 mg/L) or higher) under certain conditions. In the effluent of wastewater
+treatment plants, it can range up to 30 mg/L."
+    } else if (input$variable10 == "ODO mg/L"){
+      "Dissolved oxygen (DO) is the
+    amount of oxygen that is present in water. Low levels of oxygen (hypoxia) or no oxygen levels (anoxia) 
+    can occur when excess organic materials, such as large algal blooms, are decomposed by microorganisms. DO is considered an important measure of water quality 
+    as it is a direct indicator of an aquatic resource’s ability to support aquatic life.
+While each organism has its own DO tolerance range, generally, DO levels below 3 milligrams 
+per liter (mg/L) are of concern and waters with levels below 1 mg/L are considered hypoxic and usually devoid of life."
+    } else if (input$variable10 == "Temp °C"){
+      "The rates of biological and chemical processes depend on temperature. Aquatic organisms from microbes to fish are dependent 
+    on certain temperature ranges for their optimal health.
+Temperature affects the oxygen content of the water (oxygen levels become lower as temperature increases). Like humans 
+and many other living organisms, bacteria in wastewater treatment systems function best within a certain temperature range
+– typically between 68 and 95 F (20 – 35 C)."
+    } else if (input$variable10 == "NH4+ -N mg/L"){
+      "Ammonia nitrogen includes the ionized form (ammonium, NH4+). A decrease in pH favors the ionized (NH4+) form."
+    } else if(input$variable10 == "NH3 mg/L" ){
+      "Ammonia (NH3) is a common toxicant derived from wastes, fertilizers, and natural processes. Ammonia nitrogen includes the unionized form (ammonia, NH3).
+    An increase in pH favors formation of the more toxic unionized form (NH3). Ammonia can lead to heavy plant growth
+    (eutrophication) due to its nutrient properties. EPA recommends an acute criterion magnitude of 17 mg Total Ammonia Nitrogen 
+    (TAN) per liter at pH 7 and 20°C for a one-hour average duration, not to be exceeded more than once every three years on average."
+    }
+  })
+#   
+#   conductivity <- ("Conductivity is a measure of the ability of water to pass an electrical current.
+# Conductivity in water is affected by the presence of inorganic dissolved solids
+# Conductivity is also affected by temperature: the warmer the water, the higher the conductivity.
+# Conductivity is measured in … microsiemens per centimeter (µs/cm). 
+# Distilled water has a conductivity in the range of 0.5 to 3 [µs/cm]. 
+# The conductivity of rivers in the United States generally ranges from 50 to 1500 [µs/cm]. 
+# Studies of inland fresh waters indicate that streams supporting good mixed fisheries have a range between 150 and 500 [µs/cm]. 
+# Conductivity outside this range could indicate that the water is not suitable for certain species of fish or macroinvertebrates. Industrial waters can range as high as 10,000 [µs/cm]."
+#           
+#     )
+#   orp <-("hi")
   
   output$sond_cond <- renderPlotly({
     
