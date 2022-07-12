@@ -7,6 +7,9 @@ library(readxl)
 #install.packages("shinyWidgets")
 library(shinyWidgets)
 library(plotly)
+#install.packages("slickR")
+library(slickR)
+
 
 #Valid colors are: red, yellow, aqua, blue, light-blue, 
 #green, navy, teal, olive, lime, orange, fuchsia, purple, maroon, black
@@ -126,7 +129,45 @@ all_data<-all_data %>%
              variable == 'NH4+ -N mg/L' & value < 17 ~ 'meets standards',
              variable == 'ORP mV' & value > 0 ~ 'meets standards',
              TRUE ~ 'does not meet standards'
+           )) %>% 
+  mutate(standard_min = 
+           case_when(
+             variable == 'Cond µS/cm' ~  50,
+           variable == 'pH' ~ 6,
+           variable == 'ODO mg/L' ~ 3, 
+           variable == 'NH3 mg/L' ~ 0,
+           variable == 'Turbidity NTU' ~ 0, 
+           variable == 'NitraLED mg/L' ~ 0, 
+            variable == 'Temp °C' ~ 20, 
+            variable == 'NH4+ -N mg/L' ~ 0, 
+             variable == 'ORP mV' ~ 1,
+             TRUE ~ -Inf
+           )) %>% 
+  mutate(standard_max =
+           case_when(
+             variable == 'Cond µS/cm' ~  1500,
+             variable == 'pH' ~ 9,
+             variable == 'ODO mg/L' ~ Inf,
+             variable == 'NH3 mg/L' ~ 17,
+             variable == 'Turbidity NTU' ~ 10,
+             variable == 'NitraLED mg/L' ~ 10,
+             variable == 'Temp °C' ~ 35,
+             variable == 'NH4+ -N mg/L' ~ 17,
+             variable == 'ORP mV' ~ Inf,
+             TRUE ~ -Inf
            ))
+
+head(all_data)
+
+names(all_data)
+all_data %>% 
+  group_by(variable, color) %>% 
+  summarize(n = n(),
+            standard_min = unique(standard_min),
+            standard_max = unique(standard_max),
+            min = min(as.numeric(value), na.rm=TRUE),
+            max = max(as.numeric(value), na.rm=TRUE))
+
 #################################### SUD DATA BEGINS -- CLEANING AND MODIFICATIONS ------
 
 url<-"https://docs.google.com/spreadsheets/d/14nn7NWMBatbzcz9nqcTFzQghmzMUE2o0/edit?usp=sharing&ouid=104854259661631892531&rtpof=true&sd=true"
@@ -227,7 +268,9 @@ ui <- dashboardPage(skin = 'black',
                   
                   id = "tabset2",
                   width = 10,
+                  #Project Sumary
                   tabPanel(title = "Project Summary"),
+                  #WQ Variable & Definition
                   tabPanel(title = "Water Quality Variables",
                            fluidRow(column(12, h3("Water Quality Variables and Criteria"), br())),
                            fluidRow(column(4,
@@ -246,10 +289,12 @@ ui <- dashboardPage(skin = 'black',
                                                   
                              
                            ), column(8, textOutput("variable10")))),
-                  tabPanel(title = "Wetland Photos")
+                  #photos of wetlands
+                  tabPanel(title = "Wetland Photos", slickROutput("slickr", width = "400px"))
                 )
               ),
               fluidRow(
+                #About us 
                 tabBox(title = "Who We Are",
                        id = "tabset1",
                        width = 8,
@@ -517,7 +562,13 @@ server <- function(input, output) {
   
    })
   
+  output$slickr <- renderSlickR({
+    # browser()
+    imgs <- list.files("~/Desktop/Wetlands_Project/wetlands/www/wetlandphotos/", pattern=".png", full.names = TRUE)
+    slickR(imgs)
+  })
   
+  #Water Quality Definitions ##################################################
   output$variable10 <- renderText({
     if( input$variable10 == "Cond µS/cm"){
       "Conductivity is a measure of the ability of water to pass an electrical current. 
@@ -571,18 +622,9 @@ and many other living organisms, bacteria in wastewater treatment systems functi
     (TAN) per liter at pH 7 and 20°C for a one-hour average duration, not to be exceeded more than once every three years on average."
     }
   })
-#   
-#   conductivity <- ("Conductivity is a measure of the ability of water to pass an electrical current.
-# Conductivity in water is affected by the presence of inorganic dissolved solids
-# Conductivity is also affected by temperature: the warmer the water, the higher the conductivity.
-# Conductivity is measured in … microsiemens per centimeter (µs/cm). 
-# Distilled water has a conductivity in the range of 0.5 to 3 [µs/cm]. 
-# The conductivity of rivers in the United States generally ranges from 50 to 1500 [µs/cm]. 
-# Studies of inland fresh waters indicate that streams supporting good mixed fisheries have a range between 150 and 500 [µs/cm]. 
-# Conductivity outside this range could indicate that the water is not suitable for certain species of fish or macroinvertebrates. Industrial waters can range as high as 10,000 [µs/cm]."
-#           
-#     )
-#   orp <-("hi")
+##########################################################################
+  
+  
   
   output$sond_cond <- renderPlotly({
     
@@ -592,13 +634,17 @@ and many other living organisms, bacteria in wastewater treatment systems functi
       filter(month == input$month)%>%
       filter(variable %in% c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
              "Temp °C", "NH4+ -N mg/L", "NH3 mg/L"))%>%
-      summarise(avg = mean(as.numeric(value), na.rm = TRUE), color = color)
+      summarise(avg = mean(as.numeric(value), na.rm = TRUE), 
+                color = color,
+                standard_min = unique(standard_min),
+                standard_max = unique(standard_max)) %>% 
+      mutate(color = ifelse(avg > standard_min & avg < standard_max, 'meets standards', 'does not meet standards'))
     
     ggplot(data = new_df)+
       geom_col(aes(variable, avg, fill = color), position = "dodge")+
       theme(axis.text = element_text(angle = 90))+
       labs(x = "Variable",
-           y = input$variable)+
+           y = "Measurement") + 
       scale_fill_manual(values = c(`meets standards` = "slategray2", `does not meet standards` = "yellowgreen"))+
       facet_wrap(~`Site Name`)
    
@@ -611,7 +657,13 @@ and many other living organisms, bacteria in wastewater treatment systems functi
       filter(year == input$year)%>%
       filter(month == input$month)%>%
       filter(variable == input$variable)%>%
-      summarise(avg = mean(as.numeric(value), na.rm = TRUE), color = color)
+      summarise(avg = mean(as.numeric(value), na.rm = TRUE), 
+                color = color,
+                standard_min = unique(standard_min),
+                standard_max = unique(standard_max)) %>% 
+      mutate(color = ifelse(avg > standard_min & avg < standard_max, 'meets standards', 'does not meet standards'))
+    
+    
     ggplot(data = avg_vari_site)+
       geom_col(aes(month, avg, fill = color), position = "dodge")+
       labs(x = "Month",
