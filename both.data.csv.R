@@ -141,8 +141,8 @@ anv_ph <- all_data %>%
   na.omit()
 
 anv_ph <- aov( value ~ Site + month, data = anv_ph)
-  summary(ph_anv)
-TukeyHSD(ph_anv)
+  summary(anv_ph)
+TukeyHSD(anv_ph)
 
 # turbidity anova test  
 anv_turb <- all_data %>%
@@ -265,6 +265,8 @@ ggplot(data = errors, aes( x = variable, y = n))+
 #####################################################
 url5 <- "https://docs.google.com/spreadsheets/d/14nn7NWMBatbzcz9nqcTFzQghmzMUE2o0/edit#gid=571749034"
 sud_hourly<-gsheet2tbl(url5)
+url4 <-"https://docs.google.com/spreadsheets/d/1A_ljZAZmiRBsW5iL40EGRlVG1LkMa_w_7rqCnwAFWKA/edit#gid=537305485"
+oess_data<-gsheet2tbl(url4)
 
 # select what ya need
 sud_hourly<- sud_hourly %>% 
@@ -361,8 +363,30 @@ ggplot()+
        y = 'Average Rain (mm)', 
        x = 'Month')+
   theme(axis.text.x = element_text(angle = 90))
- 
-# do a total rainfall comparison
+
+# total rainfall at SUD
+sud_totalrain <- sudhour %>% 
+  filter(yyyy == 2021) %>% 
+  group_by(mm) %>% 
+  summarise(totalrain = sum(`Rain (mm)`))
+
+# code for comparison of total rainfall at sud and oess
+comparedrain <- cbind(sud_totalrain, oess_totalrain)
+
+
+comparedrain <- comparedrain %>% select(-mm)
+
+# plot of total rain at oess and sud 
+ggplot( comparedrain %>% pivot_longer(!Month), aes(x=Month, y=value, fill=name)) + 
+  geom_col(position="dodge")+
+ View(comparedrain %>% pivot_longer(!Month))+
+  labs(title = 'Total Rainfall per Month (2021)',
+       subtitle = 'Sewanee Utility District vs. OESS',
+       y = 'Total Rain (mm)', 
+       x = 'Month')+
+  theme(axis.text.x = element_text(angle = 90))
+  
+
 #################################################    
 
 ####################################################
