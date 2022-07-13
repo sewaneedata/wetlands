@@ -247,7 +247,8 @@ ui <- dashboardPage(skin = 'black',
       menuItem("Water Quality Comparison", tabName = "dashboard", icon = icon("water")),
       menuItem("Trends", tabName = "trends", icon = icon("list-alt")),
       menuItem("Boxplots", tabName = 'boxplots', icon = icon("bar-chart-o")),
-      menuItem('Predictive Models', tabName = "models", icon = icon("table"))
+      menuItem('Descriptive Models', tabName = "models", icon = icon("table")),
+      menuItem("Weather Data", tabName = "weather", icon = icon("sun"))
       
     )
   ),
@@ -290,9 +291,15 @@ ui <- dashboardPage(skin = 'black',
                              
                            ), column(8, textOutput("variable10")))),
                   #photos of wetlands
-                  tabPanel(title = "Wetland Photos", slickROutput("slickr", width = "400px"))
+                  tabPanel(title = "Wetland Photos",
+                           fluidRow(column(3,
+                                           fluidRow(tags$img(src = "watertank.png", width = "100%", alt = "watertank")),
+                                           fluidRow(tags$img(src = "lagoonc.png", width = "100%", alt = "lagoonc")),
+                                           fluidRow(tags$img(src = "wetlandbasin3.png", width = "100%", alt = "wetlandbasin3")),
+                                           fluidRow(tags$img(src = "sprayfields.png", width = "100%", alt = "sprayfields")),
+                                           fluidRow(tags$img(src = "pickerelweed.png", width = "100%", alt = "pickerelweed"))))
                 )
-              ),
+              )),
               fluidRow(
                 #About us 
                 tabBox(title = "Who We Are",
@@ -423,11 +430,11 @@ ui <- dashboardPage(skin = 'black',
                       selectInput("variable4", "Variable",
                                   choices = c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
                                               "Temp °C", "NH4+ -N mg/L", "NH3 mg/L")),
-                      checkboxInput("average_temp", "Average Temperature"),
+                      # checkboxInput("average_temp", "Average Temperature"),
                       checkboxInput("average_rain", "Average Rainfall"),
                       checkboxInput("total_rain", "Total Rainfall"),
                       checkboxInput("solar", "Solar Measure")
-                      
+
                       
                     )),
                     tabPanel( "Daily",
@@ -522,7 +529,7 @@ ui <- dashboardPage(skin = 'black',
       ############################ MODELS TAB ############################################
       tabItem(tabName = "models",
               fluidRow(
-                box(title = "Predictive Models Using 2021 Data",
+                box(title = "Descriptive Models Using 2021 Data",
                     solidHeader = TRUE,
                     width = 12,
                   plotOutput("predic_model"),
@@ -562,11 +569,7 @@ server <- function(input, output) {
   
    })
   
-  output$slickr <- renderSlickR({
-    # browser()
-    imgs <- list.files("~/Desktop/Wetlands_Project/wetlands/www/wetlandphotos/", pattern=".png", full.names = TRUE)
-    slickR(imgs)
-  })
+
   
   #Water Quality Definitions ##################################################
   output$variable10 <- renderText({
@@ -710,9 +713,10 @@ and many other living organisms, bacteria in wastewater treatment systems functi
                          labels = c("January", "February", "March",
                                     "April", "May", "June", "July", "August", "September", "October",
                                     "November", "December"))
+  })
 
     ############################## SUD DATA 
-    
+  aver_temp <- renderPlotly({
     tempmax <- rainfalldf1 %>% 
       mutate(Month = factor(Month,
                             levels = c('Jan', 'Feb', 
@@ -739,7 +743,7 @@ and many other living organisms, bacteria in wastewater treatment systems functi
       summarise(tempmin = mean(`Low temp (F)`)) 
     
     # average temperature plot  # YES
-   aver_temp <- ggplot()+
+   ggplot()+
       geom_col(data = tempmax, aes(x = Month, y = tempmax), fill= 'blue')+
       geom_col(data = tempmin, aes(x = Month, y = tempmin), fill = 'red')+
       theme(axis.text.x = element_text(angle = 90))+
@@ -747,8 +751,10 @@ and many other living organisms, bacteria in wastewater treatment systems functi
            subtitle = 'Average Temperature (C) per Month ',
            y = 'Average Temperature',
            x = 'Months')
+  })
 
     # total rainfall per month     # YES
+  total_rain  <- renderPlotly({
     totalrain <- rainfalldf1 %>% 
       mutate(Month = factor(Month,
                             levels = c('Jan', 'Feb', 
@@ -762,16 +768,20 @@ and many other living organisms, bacteria in wastewater treatment systems functi
       summarise(totalrain = sum(na.rm = TRUE,(`rainfall (inches)`)))
     
     # total rainfall plot      # YES
-  total_rain  <- ggplot()+
+  ggplot()+
       geom_col(data = totalrain, aes( x= Month, y = totalrain),fill  = 'skyblue1')+
       labs(title = 'TotalRainfall (2021)',
            subtitle = 'Total Rainfall (in) per Month ',
            y = 'Total Rainfall (in)',
            x = 'Months')
     rainfalldf1 <- rainfalldf1 %>% rename(rainfall = `rainfall (inches)`)
+  })
     
-    # avg rainfall per month       YES
-    avgrain <- rainfalldf1 %>% 
+    # avg rainfall per month   YES
+    avg_rain <- renderPlotly({
+      
+   
+      avgrain <- rainfalldf1 %>% 
       mutate(Month = factor(Month,
                             levels = c('Jan', 'Feb', 
                                        'Mar', 
@@ -779,9 +789,11 @@ and many other living organisms, bacteria in wastewater treatment systems functi
                                        'May', 'Jun', 
                                        'Jul', 'Aug', 'Sep', 
                                        'Oct', 'Nov', 'Dec'))) %>% 
+      
       group_by(Month) %>% 
       filter(year(dates)==2021) %>% 
       summarise( avgrain = mean(na.rm = TRUE,(`rainfall (inches)`)))
+  
     
     # average rainfall per month plot
   average_rain  <-ggplot()+  
@@ -793,8 +805,7 @@ and many other living organisms, bacteria in wastewater treatment systems functi
            y = 'Average Rainfall (in)',
            x = 'Months')
     
-    
-  })
+    })
 
     output$trend_data2 <- renderPlotly({    
   
@@ -861,7 +872,7 @@ and many other living organisms, bacteria in wastewater treatment systems functi
            y = input$variable2)
   })
     #####################################################################  
-  output$predic_model <- renderPlot({
+  output$descrip_model <- renderPlot({
     
     avg_boxplot <- all_data %>%
       filter(`Site Name` == input$sitename3)%>%
@@ -870,7 +881,7 @@ and many other living organisms, bacteria in wastewater treatment systems functi
                             levels = c("January", "February", "March",
                                        "April", "May", "June", "July", "August", "September", "October",
                                        "November", "December")))
-    # code for for predictive model for turbidity
+    # code for for descriptive model for turbidity
     avg_predict <- avg_boxplot %>%
       filter( year == 2021 ) %>% 
       group_by( month ) %>% 
@@ -881,7 +892,7 @@ and many other living organisms, bacteria in wastewater treatment systems functi
                                        "November", "December")))
     
     #####################################################################   
-    # predictive model using year 2021
+    # descriptive model using year 2021
     ggplot( data = avg_boxplot, aes( x= (month), y = as.numeric(value)))+
       geom_jitter(alpha = .3)+
       theme(axis.text.x = element_text(angle = 90))+
