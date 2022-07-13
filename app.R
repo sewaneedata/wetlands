@@ -248,7 +248,8 @@ ui <- dashboardPage(skin = 'black',
       menuItem("Trends", tabName = "trends", icon = icon("list-alt")),
       menuItem("Boxplots", tabName = 'boxplots', icon = icon("bar-chart-o")),
       menuItem('Descriptive Models', tabName = "models", icon = icon("table")),
-      menuItem("Weather Data", tabName = "weather", icon = icon("sun"))
+      menuItem("Weather Data", tabName = "weather", icon = icon("sun")),
+      menuItem("Statistical Analysis", tabName = "stats", icon = icon("code"))
       
     )
   ),
@@ -292,14 +293,46 @@ ui <- dashboardPage(skin = 'black',
                            ), column(8, textOutput("variable10")))),
                   #photos of wetlands
                   tabPanel(title = "Wetland Photos",
-                           fluidRow(column(3,
-                                           fluidRow(tags$img(src = "watertank.png", width = "100%", alt = "watertank")),
-                                           fluidRow(tags$img(src = "lagoonc.png", width = "100%", alt = "lagoonc")),
-                                           fluidRow(tags$img(src = "wetlandbasin3.png", width = "100%", alt = "wetlandbasin3")),
-                                           fluidRow(tags$img(src = "sprayfields.png", width = "100%", alt = "sprayfields")),
-                                           fluidRow(tags$img(src = "pickerelweed.png", width = "100%", alt = "pickerelweed"))))
-                )
-              )),
+                        
+                                           fluidRow(
+                                            column(3, 
+                                                   tags$img(src = "watertank.png", width = "100%", alt = "watertank"),
+                                                   br(),
+                                                   br(),
+                                                   p("Water supply tank"),
+                                                   tags$img(src = "lagoonc.png", width = "100%", alt = "lagoonc"),
+                                                   br(),
+                                                   br(),
+                                                   p("Lagoon C")),
+                                          column(3,
+                                                   tags$img(src = "wetlandbasin3.png", width = "100%", alt = "wetlandbasin3"),
+                                                   br(),
+                                                   br(),
+                                                   p("Wetland Basin 3 & SONDE Probe"),
+                                                   tags$img(src = "Team.png", width = "100%", alt = "teams"),
+                                                   br(),
+                                                   br(),
+                                                   p("Our team")),
+                                        column(3,
+                                                   tags$img(src = "sprayfields.png", width = "100%", alt = "sprayfields"),
+                                                   br(),
+                                                   br(),
+                                                   p("Spray Field"),
+                                                   tags$img(src = "pickerelweed.png", width = "100%", alt = "pickerelweed"),
+                                                   br(),
+                                                   br(),
+                                                   p("Pickerel weed")),
+                                            column(3,
+                                                   tags$img(src = "mcgrath.png", width = "100%", alt = "mcgrath"),
+                                                   br(),
+                                                   br(),
+                                                   p("Dr. McGrath"),
+                                                   tags$img(src = "rosemallow.png", width = "100%", alt = "rosemallow"),
+                                                   br(),
+                                                   br(),
+                                                   p("Rose mallow"))
+                
+              )))),
               fluidRow(
                 #About us 
                 tabBox(title = "Who We Are",
