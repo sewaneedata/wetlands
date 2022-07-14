@@ -170,47 +170,32 @@ all_data %>%
 
 #################################### SUD DATA BEGINS -- CLEANING AND MODIFICATIONS ------
 
-url<-"https://docs.google.com/spreadsheets/d/14nn7NWMBatbzcz9nqcTFzQghmzMUE2o0/edit?usp=sharing&ouid=104854259661631892531&rtpof=true&sd=true"
-sud <-gsheet2tbl(url)
+url5 <- "https://docs.google.com/spreadsheets/d/14nn7NWMBatbzcz9nqcTFzQghmzMUE2o0/edit#gid=571749034"
+sud_hourly<-gsheet2tbl(url5)
 url4 <-"https://docs.google.com/spreadsheets/d/1A_ljZAZmiRBsW5iL40EGRlVG1LkMa_w_7rqCnwAFWKA/edit#gid=537305485"
-rainfalldf<-gsheet2tbl(url4)
+oess_data<-gsheet2tbl(url4)
 
-# rename 
-sud<-sud%>%
-  rename(Date = `Date Values Reflect`)
+# select what ya need
+sud_hourly<- sud_hourly %>% 
+  select(Timestamp, `VPD Avg (Kpa)`, `Rain (mm)`, `Solar Total (MJ/m²)`)
 
-# filter missing data
-sud<-sud %>%
-  filter(Date != "MISSING DATA" | Date != "NO POWER - AERATOR INSTALL")
+# make a year column
+sudhour<- sud_hourly %>% 
+  mutate(yyyy = year(mdy_hm(Timestamp))) 
+bads <- which(is.na(sudhour$yyyy))
 
-# change date 
-library(lubridate)
-sud2 <- sud
-sud2$Date <- mdy(sud$Date)
+sudhour$yyyy[bads]<-year(ymd_hms(sudhour$Timestamp[bads]))        
+sudhour[bads,]
 
-# month column 
-sud<-sud2%>%
-  mutate(month = month(Date))%>%
-  mutate(month = month.name[month])%>%
-  mutate(year = year(Date))
+# month column
+sudhour <- sudhour %>% 
+  mutate(mm = month(mdy_hm(Timestamp)))
+bads2 <- which(is.na(sudhour$mm))
+sudhour$mm[bads2]<-month(ymd_hms(sudhour$Timestamp[bads2]))
+sudhour[bads2,]
 
-# select the needed columns in Sud data 
-sud3 <- sud2 %>% 
-  select(Date, `Timestamp*`, `Air temp Avg (C)`, `Air Temp Max (C)`,`Air Temp Min`, `Solar Total (MJ/m²)`)
-
-# rename variables
-sud3<-sud3 %>% rename(Dates=Date) %>% rename(Time=`Timestamp*`) %>% 
-  rename(air_temp_avg_C = `Air temp Avg (C)`) %>% rename(air_temp_max_C = `Air Temp Max (C)`) %>% 
-  rename(air_temp_min_C = `Air Temp Min`)
-# year and month columnns
-sud3 <- sud3 %>% 
-  mutate(year = year(Dates))
-sud3 <- sud3 %>% 
-  mutate(months = month(Dates))
-
-
-# OESS Precipitation and Temp data   ------
-rainfalldf1 <- rainfalldf
+# OESS Precipitation and Temp data  ####3 YES ALL OF THIS?
+oess_data2 <- oess_data
 
 # remove titles within data set
 #rainfalldf1 <- rainfalldf1 %>% 
@@ -218,18 +203,18 @@ rainfalldf1 <- rainfalldf
 #drop_na( Year )
 
 # month collumn
-rainfalldf1 <- rainfalldf %>% 
+oess_data2 <- oess_data %>% 
   filter(!is.na(Date)) %>%
   unite( col=Date, Year:Date, sep="-")
 #mutate( Month = month.abb[month( as_date(Date)) ] )
 
 #reformat datasets because date was not matche up with the year
-rainfalldf1 <-rainfalldf1 %>%
-  mutate(dates = c(rainfalldf1$Date[1:369] %>% ydm(), rainfalldf1$Date[370:376] %>% ymd())) %>% 
+oess_data2<-oess_data2 %>%
+  mutate(dates = c(oess_data2$Date[1:369] %>% ydm(), oess_data2$Date[370:376] %>% ymd())) %>% 
   mutate( Month = month.abb[month( as_date(dates)) ] )
 
 # select the columns needed
-rainfalldf1 <- rainfalldf1 %>% 
+oess_data2 <- oess_data2 %>% 
   select(dates, Date, Month, `High temp (F)`, `Low temp (F)`, `rainfall (inches)`)
 ####################################################
 
@@ -582,7 +567,45 @@ ui <- dashboardPage(skin = 'black',
                   selectInput("variable3", "Variable",
                               choices = c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
                                           "Temp °C", "NH4+ -N mg/L", "NH3 mg/L"))
-                )))
+                ))),
+      
+      tabItem(tabName = "weather",
+              fluidRow(
+                tabBox(title = "Weather Data",
+                       width = 12,
+                       tabPanel(
+                         title = "Total Rainfall",
+                         plotlyOutput("weather_data1")),
+                       tabPanel(
+                         title = "Solar Output",
+                         plotlyOutput("weather_data2")
+                       ),
+                       tabPanel(
+                         title = "Temperature",
+                         plotlyOutput("weather_data3")
+                       ),
+                       tabPanel(
+                         title = "VPN",
+                         plotlyOutput("weather_data4")
+                       ),
+                       tabPanel(
+                         title = "Solar",
+                         plotlyOutput("weather_data5")
+                       )
+                       ))),
+      tabItem(
+        tabName = "stats",
+        fluidRow(
+          tabBox(
+            title = "Statistical Tests",
+            width = 12,
+            tabPanel(
+              title = "pH"
+              
+            )
+          )
+        )
+      )
       
       
       )))
@@ -747,89 +770,28 @@ and many other living organisms, bacteria in wastewater treatment systems functi
                                     "April", "May", "June", "July", "August", "September", "October",
                                     "November", "December"))
   })
-
-    ############################## SUD DATA 
-  aver_temp <- renderPlotly({
-    tempmax <- rainfalldf1 %>% 
-      mutate(Month = factor(Month,
-                            levels = c('Jan', 'Feb', 
-                                       'Mar', 
-                                       'Apr', 
-                                       'May', 'Jun', 
-                                       'Jul', 'Aug', 'Sep', 
-                                       'Oct', 'Nov', 'Dec'))) %>% 
-      group_by(Month) %>% 
-      filter(year(dates) == 2021) %>% 
-      summarise(tempmax = mean(`High temp (F)`))
-    
-    # avg min temperature per month  # YES
-    tempmin <- rainfalldf1 %>%
-      mutate(Month = factor(Month,
-                            levels = c('Jan', 'Feb', 
-                                       'Mar', 
-                                       'Apr', 
-                                       'May', 'Jun', 
-                                       'Jul', 'Aug', 'Sep', 
-                                       'Oct', 'Nov', 'Dec'))) %>% 
-      group_by(Month) %>% 
-      filter(year(dates) == 2021) %>% 
-      summarise(tempmin = mean(`Low temp (F)`)) 
-    
-    # average temperature plot  # YES
-   ggplot()+
-      geom_col(data = tempmax, aes(x = Month, y = tempmax), fill= 'blue')+
-      geom_col(data = tempmin, aes(x = Month, y = tempmin), fill = 'red')+
-      theme(axis.text.x = element_text(angle = 90))+
-      labs(title = 'Highest and Lowest Temperatures (2021)',
-           subtitle = 'Average Temperature (C) per Month ',
-           y = 'Average Temperature',
-           x = 'Months')
-  })
-
-    # total rainfall per month     # YES
-  total_rain  <- renderPlotly({
-    totalrain <- rainfalldf1 %>% 
-      mutate(Month = factor(Month,
-                            levels = c('Jan', 'Feb', 
-                                       'Mar', 
-                                       'Apr', 
-                                       'May', 'Jun', 
-                                       'Jul', 'Aug', 'Sep', 
-                                       'Oct', 'Nov', 'Dec'))) %>% 
-      group_by(Month) %>% 
-      filter(year(dates)==2021) %>% 
-      summarise(totalrain = sum(na.rm = TRUE,(`rainfall (inches)`)))
-    
-    # total rainfall plot      # YES
-  ggplot()+
-      geom_col(data = totalrain, aes( x= Month, y = totalrain),fill  = 'skyblue1')+
-      labs(title = 'TotalRainfall (2021)',
-           subtitle = 'Total Rainfall (in) per Month ',
-           y = 'Total Rainfall (in)',
-           x = 'Months')
-    rainfalldf1 <- rainfalldf1 %>% rename(rainfall = `rainfall (inches)`)
-  })
-    
-    # avg rainfall per month   YES
-    avg_rain <- renderPlotly({
-      
-   
-      avgrain <- rainfalldf1 %>% 
-      mutate(Month = factor(Month,
-                            levels = c('Jan', 'Feb', 
-                                       'Mar', 
-                                       'Apr', 
-                                       'May', 'Jun', 
-                                       'Jul', 'Aug', 'Sep', 
-                                       'Oct', 'Nov', 'Dec'))) %>% 
-      
-      group_by(Month) %>% 
-      filter(year(dates)==2021) %>% 
-      summarise( avgrain = mean(na.rm = TRUE,(`rainfall (inches)`)))
   
+  output$trend_data <- renderPlotly({
+  
+    # mean and standard deviation for temp and rainfall
     
-    # average rainfall per month plot
-  average_rain  <-ggplot()+  
+    # mean/sd/upper/lower for average rainfall
+    mean_sdrain <- oess_data2 %>% 
+      mutate(Month = factor(Month,
+                            levels = c('Jan', 'Feb', 
+                                       'Mar', 
+                                       'Apr', 
+                                       'May', 'Jun', 
+                                       'Jul', 'Aug', 'Sep', 
+                                       'Oct', 'Nov', 'Dec'))) %>% 
+      group_by(Month) %>% 
+      summarise(mean = mean(rainfall, na.rm = TRUE), sd = sd(rainfall, na.rm = TRUE)) %>%           
+      mutate(lower = mean-sd, upper = mean+sd)
+    
+    
+    
+    # mean/sd plot for rainfall
+    ggplot()+  
       geom_col(data =mean_sdrain, aes(x = Month, y = mean),
                fill = 'blue', group = 1)+
       geom_errorbar(data = mean_sdrain, aes(x = Month, ymax = mean+sd, width = .1, ymin = mean))+
@@ -838,7 +800,55 @@ and many other living organisms, bacteria in wastewater treatment systems functi
            y = 'Average Rainfall (in)',
            x = 'Months')
     
-    })
+    # mean/sd/upper/lower for temp max
+    
+    meansd_tempmax <- oess_data2 %>% 
+      mutate(Month = factor(Month,
+                            levels = c('Jan', 'Feb', 
+                                       'Mar', 
+                                       'Apr', 
+                                       'May', 'Jun', 
+                                       'Jul', 'Aug', 'Sep', 
+                                       'Oct', 'Nov', 'Dec'))) %>% 
+      group_by(Month) %>% 
+      summarise(mean = mean(`High temp (F)`, na.rm = TRUE), sd = sd(`High temp (F)`, na.rm = TRUE)) %>%           
+      mutate(lower = mean-sd, upper = mean+sd)
+    
+    # plot of temp max 
+    ggplot()+  
+      geom_col(data =meansd_tempmax, aes(x = Month, y = mean),
+               fill = 'blue', group = 1)+
+      geom_errorbar(data = meansd_tempmax, aes(x = Month, ymax = mean+sd, width = .1, ymin = mean))+
+      labs(title = 'Temperature Max (2021)',
+           subtitle = 'Temp Max (C) per Month ',
+           y = 'Average Temperature (C)',
+           x = 'Months')
+    
+    # mean/sd/upper/lower for temp min
+    
+    meansd_tempmin <- oess_data2 %>% 
+      mutate(Month = factor(Month,
+                            levels = c('Jan', 'Feb', 
+                                       'Mar', 
+                                       'Apr', 
+                                       'May', 'Jun', 
+                                       'Jul', 'Aug', 'Sep', 
+                                       'Oct', 'Nov', 'Dec'))) %>% 
+      group_by(Month) %>% 
+      summarise(mean = mean(`Low temp (F)`, na.rm = TRUE), sd = sd(`Low temp (F)`, na.rm = TRUE)) %>%           
+      mutate(lower = mean-sd, upper = mean+sd)
+    
+    # plot of temp min
+    ggplot()+  
+      geom_col(data =meansd_tempmin, aes(x = Month, y = mean),
+               fill = 'aquamarine3', group = 1)+
+      geom_errorbar(data = meansd_tempmin, aes(x = Month, ymax = mean+sd, width = .1, ymin = mean))+
+      labs(title = 'Temperature Min (2021)',
+           subtitle = 'Temp Min (C) per Month ',
+           y = 'Average Min Temperature (C)',
+           x = 'Months')
+    
+  })
 
     output$trend_data2 <- renderPlotly({    
   
@@ -939,7 +949,147 @@ and many other living organisms, bacteria in wastewater treatment systems functi
     
   })
   
+  output$weather_data1 <- renderPlotly({
+    
+    # mean and standard deviation for temp and rainfall
+    
+    # mean/sd/upper/lower for average rainfall
+    mean_sdrain <- oess_data2 %>% 
+      mutate(Month = factor(Month,
+                            levels = c('Jan', 'Feb', 
+                                       'Mar', 
+                                       'Apr', 
+                                       'May', 'Jun', 
+                                       'Jul', 'Aug', 'Sep', 
+                                       'Oct', 'Nov', 'Dec'))) %>% 
+      group_by(Month) %>% 
+      summarise(mean = mean(`rainfall (inches)`, na.rm = TRUE), sd = sd(`rainfall (inches)`, na.rm = TRUE))%>%           
+      mutate(lower = mean-sd, upper = mean+sd)
+    
+    
+    # mean/sd plot for rainfall
+    ggplot()+  
+      geom_col(data =mean_sdrain, aes(x = Month, y = mean),
+               fill = 'blue')+
+      geom_errorbar(data = mean_sdrain, aes(x = Month, ymax = mean+sd, width = .1, ymin = mean))+
+      labs(title = 'Average Rainfall (2021)',
+           subtitle = 'Average Rainfall (in) per Month ',
+           y = 'Average Rainfall (in)',
+           x = 'Months')
+    
+    
+  })
   
+  output$weather_data2 <- renderPlotly({
+    
+    # mean/sd/upper/lower for temp max
+    
+    meansd_tempmax <- oess_data2 %>% 
+      mutate(Month = factor(Month,
+                            levels = c('Jan', 'Feb', 
+                                       'Mar', 
+                                       'Apr', 
+                                       'May', 'Jun', 
+                                       'Jul', 'Aug', 'Sep', 
+                                       'Oct', 'Nov', 'Dec'))) %>% 
+      group_by(Month) %>% 
+      summarise(mean = mean(`High temp (F)`, na.rm = TRUE), sd = sd(`High temp (F)`, na.rm = TRUE)) %>%           
+      mutate(lower = mean-sd, upper = mean+sd)
+    
+    # plot of temp max 
+    ggplot()+  
+      geom_col(data =meansd_tempmax, aes(x = Month, y = mean),
+               fill = 'blue', group = 1)+
+      geom_errorbar(data = meansd_tempmax, aes(x = Month, ymax = mean+sd, width = .1, ymin = mean))+
+      labs(title = 'Temperature Max (2021)',
+           subtitle = 'Temp Max (C) per Month ',
+           y = 'Average Temperature (C)',
+           x = 'Months')
+    
+  })
+  
+  output$weather_data3 <- renderPlotly({
+    
+    # mean/sd/upper/lower for temp min
+    
+    meansd_tempmin <- oess_data2 %>% 
+      mutate(Month = factor(Month,
+                            levels = c('Jan', 'Feb', 
+                                       'Mar', 
+                                       'Apr', 
+                                       'May', 'Jun', 
+                                       'Jul', 'Aug', 'Sep', 
+                                       'Oct', 'Nov', 'Dec'))) %>% 
+      group_by(Month) %>% 
+      summarise(mean = mean(`Low temp (F)`, na.rm = TRUE), sd = sd(`Low temp (F)`, na.rm = TRUE)) %>%           
+      mutate(lower = mean-sd, upper = mean+sd)
+    
+    # plot of temp min
+    ggplot()+  
+      geom_col(data =meansd_tempmin, aes(x = Month, y = mean),
+               fill = 'aquamarine3', group = 1)+
+      geom_errorbar(data = meansd_tempmin, aes(x = Month, ymax = mean+sd, width = .1, ymin = mean))+
+      labs(title = 'Temperature Min (2021)',
+           subtitle = 'Temp Min (C) per Month ',
+           y = 'Average Min Temperature (C)',
+           x = 'Months')
+  })
+    
+  output$weather_data4 <- renderPlotly({
+    
+    # sud VPD avg
+    avg_vpd<- sudhour %>% 
+      mutate(Month = factor(mm,
+                            levels = c('Jan', 'Feb', 
+                                       'Mar', 
+                                       'Apr', 
+                                       'May', 'Jun', 
+                                       'Jul', 'Aug', 'Sep', 
+                                       'Oct', 'Nov', 'Dec'))) %>% 
+      filter(yyyy == 2021) %>% 
+      group_by(mm) %>% 
+      summarise(vpdavg = mean(`VPD Avg (Kpa)`)) 
+    
+    # plot of average VPD
+    ggplot(data = avg_vpd, aes( x = mm, y = vpdavg))+
+      geom_col(fill = 'aquamarine3')+
+      scale_x_continuous(
+        breaks = seq_along(month.name), 
+        labels = month.name)+
+      theme(axis.text.x = element_text(angle = 90))+
+      ylim(0,.8)+
+      labs(title = "VPD Average per Month (2021)",
+           subtitle = 'At Sewanee Utility District',
+           y = 'Average VPD (Kpa)',
+           x = 'Months')
+    
+ 
+    
+    
+  })
+  
+  output$weather_data5 <- renderPlotly({
+    
+    # solar total 
+    avg_solar <- sudhour%>% 
+      filter(yyyy == 2021) %>% 
+      group_by(mm) %>% 
+      summarise(avgsolar = mean(`Solar Total (MJ/m²)`))
+    
+    # graph of average solar total 
+    ggplot(data = avg_solar, aes(x = mm, y = avgsolar)) +
+      geom_col(fill = 'yellow3')+
+      scale_x_continuous(
+        breaks = seq_along(month.name), 
+        labels = month.name)+
+      theme(axis.text.x = element_text(angle = 90))+
+      
+      labs(title = "Solar Total Average per Month (2021)",
+           subtitle = 'At Sewanee Utility District',
+           y = 'Solar Total (MJ/m2)',
+           x = 'Months')
+  })
+    
 }
 
 shinyApp(ui, server)
