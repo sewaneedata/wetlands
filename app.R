@@ -550,7 +550,7 @@ ui <- dashboardPage(skin = 'black',
                 box(title = "Descriptive Models Using 2021 Data",
                     solidHeader = TRUE,
                     width = 12,
-                  plotOutput("predic_model"),
+                  plotOutput("descrip_model"),
                     background = "purple")),
               
               fluidRow(
