@@ -181,7 +181,7 @@ oess_totalrain <-oess_data2 %>%
                                    'Oct', 'Nov', 'Dec'))) %>% 
   group_by(Month) %>% 
   filter(year(dates)==2021) %>% 
-  summarise(totalrain = sum(na.rm = TRUE,(`rainfall (inches)`)))
+  summarise(oessrain = sum(na.rm = TRUE,(`rainfall (inches)`)))
 
 # total rainfall plot      # YES
 ggplot()+
@@ -283,6 +283,7 @@ ggplot()+
        y = 'Average Min Temperature (C)',
        x = 'Months')
 ###################################################
+############# OESS anova tests ####################
 
 # rainfall anova test
 anv_rainfall <- aov(rainfall ~ Month, data = rainfalldf1)

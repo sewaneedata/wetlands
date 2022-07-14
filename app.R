@@ -574,25 +574,31 @@ ui <- dashboardPage(skin = 'black',
                 tabBox(title = "Weather Data",
                        width = 12,
                        tabPanel(
-                         title = "Total Rainfall",
+                         title = "Average Rainfall",
                          plotlyOutput("weather_data1")),
                        tabPanel(
-                         title = "Solar Output",
+                         title = "Maximum Temperature",
                          plotlyOutput("weather_data2")
                        ),
                        tabPanel(
-                         title = "Temperature",
+                         title = "Minimum Temperature",
                          plotlyOutput("weather_data3")
                        ),
                        tabPanel(
-                         title = "VPN",
+                         title = "Average VDP",
                          plotlyOutput("weather_data4")
                        ),
                        tabPanel(
-                         title = "Solar",
+                         title = "Total Solar",
                          plotlyOutput("weather_data5")
+                       ),
+                       tabPanel(
+                         title = "Rainfall Data Comparison",
+                         plotOutput("rainfall_data")
                        )
-                       ))),
+                       )
+  
+                )),
       tabItem(
         tabName = "stats",
         fluidRow(
@@ -1088,6 +1094,32 @@ and many other living organisms, bacteria in wastewater treatment systems functi
            subtitle = 'At Sewanee Utility District',
            y = 'Solar Total (MJ/m2)',
            x = 'Months')
+  })
+  
+  output$rainfall_data <- renderPlot({
+    
+    # total rainfall at SUD
+    sud_totalrain <- sudhour %>% 
+      filter(yyyy == 2021) %>% 
+      group_by(mm) %>% 
+      summarise(sudrain = sum(`Rain (mm)`))
+    
+    # code for comparison of total rainfall at sud and oess
+    comparedrain <- cbind(sud_totalrain, oess_totalrain)
+    
+    
+    comparedrain <- comparedrain %>% select(-mm)
+    
+    # plot of total rain at oess and sud 
+    ggplot( comparedrain %>% pivot_longer(!Month), aes(x=Month, y=value, fill=name)) + 
+      geom_col(position="dodge")+
+      #View(comparedrain %>% pivot_longer(!Month))+
+      labs(title = 'Total Rainfall per Month (2021)',
+           subtitle = 'Sewanee Utility District vs. OESS',
+           y = 'Total Rain (mm)', 
+           x = 'Month')+
+      theme(axis.text.x = element_text(angle = 90))+
+      scale_fill_manual(values = c("darkolivegreen4", "lightblue3"))
   })
     
 }

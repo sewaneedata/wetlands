@@ -368,7 +368,7 @@ ggplot()+
 sud_totalrain <- sudhour %>% 
   filter(yyyy == 2021) %>% 
   group_by(mm) %>% 
-  summarise(totalrain = sum(`Rain (mm)`))
+  summarise(sudrain = sum(`Rain (mm)`))
 
 # code for comparison of total rainfall at sud and oess
 comparedrain <- cbind(sud_totalrain, oess_totalrain)
