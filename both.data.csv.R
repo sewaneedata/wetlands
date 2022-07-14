@@ -332,6 +332,19 @@ ggplot(data = avg_solar, aes(x = mm, y = avgsolar)) +
        y = 'Solar Total (MJ/m2)',
        x = 'Months')
 
+# total rainfall per month     # YES
+oess_totalrain <-oess_data2 %>% 
+  mutate(Month = factor(Month,
+                        levels = c('Jan', 'Feb', 
+                                   'Mar', 
+                                   'Apr', 
+                                   'May', 'Jun', 
+                                   'Jul', 'Aug', 'Sep', 
+                                   'Oct', 'Nov', 'Dec'))) %>% 
+  group_by(Month) %>% 
+  filter(year(dates)==2021) %>% 
+  summarise(OESS = sum(na.rm = TRUE,(`rainfall (inches)`)))
+
 # SUD rain avg
 avg_rain <-  sudhour %>% 
   filter(yyyy == 2021) %>% 
@@ -368,11 +381,10 @@ ggplot()+
 sud_totalrain <- sudhour %>% 
   filter(yyyy == 2021) %>% 
   group_by(mm) %>% 
-  summarise(sudrain = sum(`Rain (mm)`))
+  summarise(SUD = sum(`Rain (mm)`))
 
 # code for comparison of total rainfall at sud and oess
 comparedrain <- cbind(sud_totalrain, oess_totalrain)
-
 
 comparedrain <- comparedrain %>% select(-mm)
 
