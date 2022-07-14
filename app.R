@@ -925,7 +925,7 @@ and many other living organisms, bacteria in wastewater treatment systems functi
                                        "April", "May", "June", "July", "August", "September", "October",
                                        "November", "December")))
     # code for for descriptive model for turbidity
-    avg_predic<- avg_boxplot %>%
+    avg_predict<- avg_boxplot %>%
       filter( year == 2021 ) %>% 
       group_by( month ) %>% 
       summarize(avg = mean(as.numeric(value)))%>%
