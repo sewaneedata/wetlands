@@ -446,6 +446,5 @@ ggplot(data = deltatotal, aes(x = Month, y = meandelta))+
   geom_col(color = 'red')+
   theme(axis.text.x = element_text(angle = 90))
 
-
           
            
