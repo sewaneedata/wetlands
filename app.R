@@ -594,7 +594,7 @@ ui <- dashboardPage(skin = 'black',
                        ),
                        tabPanel(
                          title = "Rainfall Data Comparison",
-                         plotOutput("rainfall_data")
+                         plotlyOutput("rainfall_data")
                        )
                        )
   
@@ -1096,13 +1096,24 @@ and many other living organisms, bacteria in wastewater treatment systems functi
            x = 'Months')
   })
   
-  output$rainfall_data <- renderPlot({
+  output$rainfall_data <- renderPlotly({
+    oess_totalrain <-oess_data2 %>% 
+      mutate(Month = factor(Month,
+                            levels = c('Jan', 'Feb', 
+                                       'Mar', 
+                                       'Apr', 
+                                       'May', 'Jun', 
+                                       'Jul', 'Aug', 'Sep', 
+                                       'Oct', 'Nov', 'Dec'))) %>% 
+      group_by(Month) %>% 
+      filter(year(dates)==2021) %>% 
+      summarise(OESS = sum(na.rm = TRUE,(`rainfall (inches)`)))
     
     # total rainfall at SUD
     sud_totalrain <- sudhour %>% 
       filter(yyyy == 2021) %>% 
       group_by(mm) %>% 
-      summarise(sudrain = sum(`Rain (mm)`))
+      summarise(SUD = sum(`Rain (mm)`))
     
     # code for comparison of total rainfall at sud and oess
     comparedrain <- cbind(sud_totalrain, oess_totalrain)
