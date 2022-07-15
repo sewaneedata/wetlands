@@ -21,12 +21,19 @@ library(data.table)
 
 url<-"https://docs.google.com/spreadsheets/d/14nn7NWMBatbzcz9nqcTFzQghmzMUE2o0/edit?usp=sharing&ouid=104854259661631892531&rtpof=true&sd=true"
 sud <-gsheet2tbl(url)
-url2 <- 'https://docs.google.com/spreadsheets/d/1WdrZuZP9J6Im4KQdo6MudPQC4Fwf13rD/edit?usp=sharing&ouid=104854259661631892531&rtpof=true&sd=true'
+url2 <- 'https://docs.google.com/spreadsheets/d/1gM_2BuFFZjyv59s3UMuZl1NEmv6eMCxJ/edit#gid=153164412'
 sond<-gsheet2tbl(url2)
-url3 <- "https://docs.google.com/spreadsheets/d/1eRF3RnsWTt6ObsY6hlgi6jOjvliS1Gn5/edit#gid=200414766"
+url3 <- "https://docs.google.com/spreadsheets/d/1gM_2BuFFZjyv59s3UMuZl1NEmv6eMCxJ/edit#gid=200414766"
 lagoonC<-gsheet2tbl(url3)
 lagoonC
 
+############## removing the serial numbers #########
+
+sond <- read.csv(text = gsheet2text(url2, format='csv'), skip = 2, check.names = FALSE)
+lagoonC <- read.csv(text = gsheet2text(url3, format='csv'), skip = 1, check.names = FALSE)
+
+lagoonC <- lagoonC[-20]
+sond <- sond[-22]
 ######## CLEAN THE DATA #######################
 
 names(sud)
@@ -100,6 +107,11 @@ all_data%>%
                         levels = c("January", "February", "March",
                                    "April", "May", "June", "July", "August", "September", "October",
                                    "November", "December")))
+############## making an hour column on combined sond data ----
+
+#all_data<- all_data%>%
+ # mutate(hour = hour(lubridate::as_datetime(`Time (HH:mm:ss)`, origin = "1970-1-1")), na.rm = TRUE)
+
 ######### make a vector
 possible_dates<-seq(min(ymd(all_data$Date), na.rm =TRUE), max(ymd(all_data$Date), na.rm =TRUE), by = "day")
 
@@ -234,7 +246,7 @@ ui <- dashboardPage(skin = 'black',
       menuItem("Boxplots", tabName = 'boxplots', icon = icon("bar-chart-o")),
       menuItem('Descriptive Models', tabName = "models", icon = icon("table")),
       menuItem("Weather Data", tabName = "weather", icon = icon("sun")),
-      menuItem("Statistical Analysis", tabName = "stats", icon = icon("code"))
+      menuItem("Aerator", tabName = "aer", icon = icon("code"))
       
     )
   ),
@@ -449,9 +461,9 @@ ui <- dashboardPage(skin = 'black',
                                   choices = c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
                                               "Temp °C", "NH4+ -N mg/L", "NH3 mg/L")),
                       # checkboxInput("average_temp", "Average Temperature"),
-                      checkboxInput("average_rain", "Average Rainfall"),
-                      checkboxInput("total_rain", "Total Rainfall"),
-                      checkboxInput("solar", "Solar Measure")
+                      #checkboxInput("average_rain", "Average Rainfall"),
+                      #checkboxInput("total_rain", "Total Rainfall"),
+                      #checkboxInput("solar", "Solar Measure")
 
                       
                     )),
@@ -585,7 +597,7 @@ ui <- dashboardPage(skin = 'black',
                          plotlyOutput("weather_data3")
                        ),
                        tabPanel(
-                         title = "Average VDP",
+                         title = "Average Vapor Pressure Deficit",
                          plotlyOutput("weather_data4")
                        ),
                        tabPanel(
@@ -600,13 +612,17 @@ ui <- dashboardPage(skin = 'black',
   
                 )),
       tabItem(
-        tabName = "stats",
+        tabName = "aer",
         fluidRow(
-          tabBox(
-            title = "Statistical Tests",
+          box(
+            title = "Aerator Installation",
             width = 12,
-            tabPanel(
-              title = "pH"
+            plotOutput("aer_plot"),
+            selectInput("variable7", "Variable",
+                        choices = c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
+                                          "Temp °C", "NH4+ -N mg/L", "NH3 mg/L")),
+            selectInput("site7", "Site",
+                        choices = c("Wetland Basin 3", "Lagoon C"))
               
             )
           )
@@ -614,7 +630,7 @@ ui <- dashboardPage(skin = 'black',
       )
       
       
-      )))
+      ))
       
     # Boxes need to be put in a row (or column)
       
@@ -764,6 +780,10 @@ and many other living organisms, bacteria in wastewater treatment systems functi
                                                               "December"),
                                 labels = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12))
     
+    #opt_plots <- 
+   #   if(input$average_rain){geom_bar(data = mtcars, x = mpg)}
+     # else{NA}
+    
     ggplot()+
       geom_point(data = month_trend, aes(as.numeric(month), avg_month, color = site))+
       geom_line(data = month_trend, aes(as.numeric(month), avg_month, color = site))+
@@ -775,127 +795,49 @@ and many other living organisms, bacteria in wastewater treatment systems functi
                          labels = c("January", "February", "March",
                                     "April", "May", "June", "July", "August", "September", "October",
                                     "November", "December"))
-  })
-  
-  output$trend_data <- renderPlotly({
-  
-    # mean and standard deviation for temp and rainfall
     
-    # mean/sd/upper/lower for average rainfall
-    mean_sdrain <- oess_data2 %>% 
-      mutate(Month = factor(Month,
-                            levels = c('Jan', 'Feb', 
-                                       'Mar', 
-                                       'Apr', 
-                                       'May', 'Jun', 
-                                       'Jul', 'Aug', 'Sep', 
-                                       'Oct', 'Nov', 'Dec'))) %>% 
-      group_by(Month) %>% 
-      summarise(mean = mean(rainfall, na.rm = TRUE), sd = sd(rainfall, na.rm = TRUE)) %>%           
-      mutate(lower = mean-sd, upper = mean+sd)
-    
-    
-    
-    # mean/sd plot for rainfall
-    ggplot()+  
-      geom_col(data =mean_sdrain, aes(x = Month, y = mean),
-               fill = 'blue', group = 1)+
-      geom_errorbar(data = mean_sdrain, aes(x = Month, ymax = mean+sd, width = .1, ymin = mean))+
-      labs(title = 'Average Rainfall (2021)',
-           subtitle = 'Average Rainfall (in) per Month ',
-           y = 'Average Rainfall (in)',
-           x = 'Months')
-    
-    # mean/sd/upper/lower for temp max
-    
-    meansd_tempmax <- oess_data2 %>% 
-      mutate(Month = factor(Month,
-                            levels = c('Jan', 'Feb', 
-                                       'Mar', 
-                                       'Apr', 
-                                       'May', 'Jun', 
-                                       'Jul', 'Aug', 'Sep', 
-                                       'Oct', 'Nov', 'Dec'))) %>% 
-      group_by(Month) %>% 
-      summarise(mean = mean(`High temp (F)`, na.rm = TRUE), sd = sd(`High temp (F)`, na.rm = TRUE)) %>%           
-      mutate(lower = mean-sd, upper = mean+sd)
-    
-    # plot of temp max 
-    ggplot()+  
-      geom_col(data =meansd_tempmax, aes(x = Month, y = mean),
-               fill = 'blue', group = 1)+
-      geom_errorbar(data = meansd_tempmax, aes(x = Month, ymax = mean+sd, width = .1, ymin = mean))+
-      labs(title = 'Temperature Max (2021)',
-           subtitle = 'Temp Max (C) per Month ',
-           y = 'Average Temperature (C)',
-           x = 'Months')
-    
-    # mean/sd/upper/lower for temp min
-    
-    meansd_tempmin <- oess_data2 %>% 
-      mutate(Month = factor(Month,
-                            levels = c('Jan', 'Feb', 
-                                       'Mar', 
-                                       'Apr', 
-                                       'May', 'Jun', 
-                                       'Jul', 'Aug', 'Sep', 
-                                       'Oct', 'Nov', 'Dec'))) %>% 
-      group_by(Month) %>% 
-      summarise(mean = mean(`Low temp (F)`, na.rm = TRUE), sd = sd(`Low temp (F)`, na.rm = TRUE)) %>%           
-      mutate(lower = mean-sd, upper = mean+sd)
-    
-    # plot of temp min
-    ggplot()+  
-      geom_col(data =meansd_tempmin, aes(x = Month, y = mean),
-               fill = 'aquamarine3', group = 1)+
-      geom_errorbar(data = meansd_tempmin, aes(x = Month, ymax = mean+sd, width = .1, ymin = mean))+
-      labs(title = 'Temperature Min (2021)',
-           subtitle = 'Temp Min (C) per Month ',
-           y = 'Average Min Temperature (C)',
-           x = 'Months')
-    
-  })
 
-    output$trend_data2 <- renderPlotly({    
-  
-       ################################# daily trends
-    daily_all_data <- all_data %>%
-      mutate(days = day(Date))
-    avgDay <- daily_all_data %>%
-      group_by(month, days) %>%
-      filter(year == input$year5) %>%
-      filter(month %in% input$month5) %>%
-      filter(`Site Name` == input$site5)%>%
-      filter(variable == input$variable5) %>%
-      summarise(meanVar = mean(as.numeric(value)))
-    
-    ggplot(data = avgDay, aes(x = days, y =meanVar, color = month))+
-      geom_point()+
-      geom_line()+
-      scale_y_continuous(breaks = seq(0,40,2))+
-      scale_x_continuous(breaks = seq(0,30,2))+
-      labs(x = "Day of the Month",
-           y = input$variable5)
-    
-    
-    
   })
+  
+  output$trend_data2 <- renderPlotly({
+  
+  ################################# daily trends
+  daily_all_data <- all_data %>%
+    mutate(days = day(Date))
+  avgDay <- daily_all_data %>%
+    group_by(month, days) %>%
+    filter(year == input$year5) %>%
+    filter(month %in% input$month5) %>%
+    filter(`Site Name` == input$site5)%>%
+    filter(variable == input$variable5) %>%
+    summarise(meanVar = mean(as.numeric(value)))
+  
+  ggplot(data = avgDay, aes(x = days, y =meanVar, color = month))+
+    geom_point()+
+    geom_line()+
+    scale_y_continuous(breaks = seq(0,40,2))+
+    scale_x_continuous(breaks = seq(0,30,2))+
+    labs(x = "Day of the Month",
+         y = input$variable5)
+})
+  
     output$trend_data3 <- renderPlotly({    
      
        ######################################## hourly trends
       time_attempt<-all_data %>%
-        mutate( hour = hour(`Time (HH:mm:ss)`)) %>%
+        #mutate( hour = hour(`Time (HH:mm:ss)`)) %>%
        # filter(year == input$year6)%>%
         filter(variable == input$variable6)%>%
         filter(Date %in% input$date6)%>% 
         filter(`Site Name` == input$site6)
       
-      ggplot(data = time_attempt, aes(x=hour, y=as.numeric(value), color = factor(Date)))+
+      ggplot(data = time_attempt, aes(x= `Time (HH:mm:ss)`, y=as.numeric(value), color = factor(Date)))+
         geom_point()+
-        geom_line()+
+        geom_line(aes(group = factor(Date)))+
         labs(x = "Hour of the Day",
              y = input$variable6,
-             color = "Date")
+             color = "Date")+
+        theme(axis.text.x = element_text(angle = 90))
       
       
     
@@ -976,7 +918,7 @@ and many other living organisms, bacteria in wastewater treatment systems functi
     # mean/sd plot for rainfall
     ggplot()+  
       geom_col(data =mean_sdrain, aes(x = Month, y = mean),
-               fill = 'blue')+
+               fill = 'orange')+
       geom_errorbar(data = mean_sdrain, aes(x = Month, ymax = mean+sd, width = .1, ymin = mean))+
       labs(title = 'Average Rainfall (2021)',
            subtitle = 'Average Rainfall (in) per Month ',
@@ -1005,7 +947,7 @@ and many other living organisms, bacteria in wastewater treatment systems functi
     # plot of temp max 
     ggplot()+  
       geom_col(data =meansd_tempmax, aes(x = Month, y = mean),
-               fill = 'blue', group = 1)+
+               fill = 'aquamarine2', group = 1)+
       geom_errorbar(data = meansd_tempmax, aes(x = Month, ymax = mean+sd, width = .1, ymin = mean))+
       labs(title = 'Temperature Max (2021)',
            subtitle = 'Temp Max (C) per Month ',
@@ -1058,7 +1000,7 @@ and many other living organisms, bacteria in wastewater treatment systems functi
     
     # plot of average VPD
     ggplot(data = avg_vpd, aes( x = mm, y = vpdavg))+
-      geom_col(fill = 'aquamarine3')+
+      geom_col(fill = 'purple')+
       scale_x_continuous(
         breaks = seq_along(month.name), 
         labels = month.name)+
@@ -1131,6 +1073,20 @@ and many other living organisms, bacteria in wastewater treatment systems functi
            x = 'Month')+
       theme(axis.text.x = element_text(angle = 90))+
       scale_fill_manual(values = c("darkolivegreen4", "lightblue3"))
+  })
+  
+  output$aer_plot <- renderPlotly({
+    
+    aerator <- all_data%>%
+      mutate(aerator_status = ifelse(Date <= 2022-03-01, "post", "pre"))%>%
+      group_by(month)%>%
+      filter(`Site Name` == input$site7)%>%
+      filter(variable == input$variable7)%>%
+      summarise(avg = mean(value))
+    
+    ggplot(data = aerator, aes(month, avg), fill = aerator_status)+
+      geom_col()
+      
   })
     
 }
