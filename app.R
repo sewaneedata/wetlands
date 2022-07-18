@@ -267,8 +267,63 @@ ui <- dashboardPage(skin = 'black',
                   
                   id = "tabset2",
                   width = 10,
-                  #Project Sumary
-                  tabPanel(title = "Project Summary"),
+                  #Project Summary
+                  tabPanel(title = "Project Summary",
+                  fluidRow(column(6, 
+                                   h3("Wetland Project Summary"))),
+                  fluidRow(column(12,
+                                   br(),
+                                   p("Constructed wetlands are a more sustainable and 
+                                   cost-effective alternative to wastewater treatment
+                                     in comparison to conventional municipal treatment plants. 
+                                     Through the microbial activity,
+                                     wetlands naturally treat contaminants and pollutants,
+                                     providing a more biologically efficient method of wastewater treatment.
+                                     Wetland treatment has worked successfully on a
+                                     large-scale such as the systems in Clayton County,
+                                     GA, and Orange County, CA. However, wetlands have not been used 
+                                     for wastewater treatment
+                                     on a small-rural scale."),
+                                    br(),
+                                    br(),
+                                    p("In 2016, Dr. McGrath, Professor of Biology at Sewanee, 
+                                      lobbied for the construction of three wetland basins at the Sewanee
+                                      Utility District (SUD) in order to research the efficacy of wetlands
+                                      for wastewater treatment for a small community setting.
+                                      For the past few years, water quality measurements have been
+                                      taken at the SUD's wetlands to better determine the outcomes of wetland treatment
+                                      in rural communities like Sewanee. Our team's goal was to set up visualizations
+                                      that allow our community partner, Dr. McGrath, to understand the water quality
+                                      trends of the wetlands over time in order to push for sustainable development
+                                      in the community."),
+                                      br(),
+                                      br(),
+                                      p("Our dashboard is set up to show the trends of water quality
+                                      parameters for two treatment sites: the conventional lagoon treatment
+                                      and the experimental wetland treatment. We’ve used EPA standards
+                                      on surface water quality to determine whether the wetlands meet the
+                                      criteria for each parameter. Additionally, the water quality trends
+                                      are shown throughout years, months, days, and hours, so that Dr. McGrath
+                                      can have a better insight on when wetland treatment performs best.
+                                      Furthermore, we show trends in weather data, such as air temperature
+                                      and precipitation in order to assess the impacts that climate change
+                                      has had on the wetlands."),
+                                      br(),
+                                      br(), 
+                                      p("Our most essential tab on the dashboard 
+                                        is the aerator tab. The aerator was added 
+                                        to wetland treatment at the beginning of 2022 
+                                        as a way to increase dissolved oxygen levels in the wetlands.
+                                        In our data from 2020-2021, dissolved oxygen has been much 
+                                        lower than we would want because of invasive species taking 
+                                        over the small wetland basin. However, Dr. McGrath predicts
+                                        that the implementation of the aerator will increase oxygen
+                                        levels in the water; therefore, improving the overall quality
+                                        of water in the wetlands. From our time at DataLab, all of the
+                                        data we worked with was pre-aeration; however, we’ve set up our
+                                        dashboard in a way that allows Dr. McGrath to continue inputting
+                                        data, so that she can see the impacts that the aerator has on the
+                                        quality of wetland treatment. ")))),
                   #WQ Variable & Definition
                   tabPanel(title = "Water Quality Variables",
                            fluidRow(column(12, h3("Water Quality Variables and Criteria"), br())),
