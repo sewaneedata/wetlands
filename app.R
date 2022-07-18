@@ -9,6 +9,8 @@ library(shinyWidgets)
 library(plotly)
 #install.packages("slickR")
 library(slickR)
+#install.packages("wesanderson")
+library(wesanderson)
 
 
 #Valid colors are: red, yellow, aqua, blue, light-blue, 
@@ -516,8 +518,8 @@ ui <- dashboardPage(skin = 'black',
                                   choices = c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
                                               "Temp °C", "NH4+ -N mg/L", "NH3 mg/L")),
                       # checkboxInput("average_temp", "Average Temperature"),
-                      checkboxInput("avg_temp", "Min Temperature"),
-                      checkboxInput("avg_temp2", "Max Temperature"),
+                      checkboxInput("avg_temp", "Max Temperature"),
+                      checkboxInput("avg_temp2", "Min Temperature"),
                       checkboxInput("total_rain", "Total Rainfall"),
                       checkboxInput("solar", "Solar Measure")
 
@@ -636,6 +638,7 @@ ui <- dashboardPage(skin = 'black',
                               choices = c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
                                           "Temp °C", "NH4+ -N mg/L", "NH3 mg/L"))
                 ))),
+      #### weather tab -----
       
       tabItem(tabName = "weather",
               fluidRow(
@@ -667,18 +670,22 @@ ui <- dashboardPage(skin = 'black',
                        )
   
                 )),
+      ###### aerator tab -----
       tabItem(
         tabName = "aer",
         fluidRow(
           box(
             title = "Aerator Installation",
             width = 12,
-            plotOutput("aer_plot"),
+            plotlyOutput("aer_plot"),
             selectInput("variable7", "Variable",
                         choices = c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
                                           "Temp °C", "NH4+ -N mg/L", "NH3 mg/L")),
             selectInput("site7", "Site",
-                        choices = c("Wetland Basin 3", "Lagoon C"))
+                        choices = c("Wetland Basin 3", "Lagoon C")),
+            selectInput("year7", "Year",
+                        choices = c(2020, 2021, 2022, 2023),
+                        multiple = TRUE)
               
             )
           )
@@ -895,7 +902,7 @@ and many other living organisms, bacteria in wastewater treatment systems functi
         filter(year(dates) == 2021) %>% 
         summarise(max.temp = mean(`High temp (F)`))
       g <- g +
-        geom_line(data = tempmax, aes(x = month, y = max.temp), fill= 'red')
+        geom_line(data = tempmax, aes(x = month, y = max.temp), color= 'red')
     }
     ### check input min temperature -----
     show_avg_temp2 <- input$avg_temp2
@@ -908,7 +915,7 @@ and many other living organisms, bacteria in wastewater treatment systems functi
         filter(year(dates) == 2021) %>% 
         summarise(min.temp = mean(`Low temp (F)`))
       g <- g +
-        geom_line(data = tempmin, aes(x = month, y = min.temp), fill= 'orange')
+        geom_line(data = tempmin, aes(x = month, y = min.temp), color= 'orange')
     }
 
   })
@@ -1190,16 +1197,34 @@ and many other living organisms, bacteria in wastewater treatment systems functi
   })
   
   output$aer_plot <- renderPlotly({
-    
+    ### aerator plot -----
     aerator <- all_data%>%
-      mutate(aerator_status = ifelse(Date <= 2022-03-01, "post", "pre"))%>%
-      group_by(month)%>%
+      group_by(month, year)%>%
+      mutate(month = factor(month,
+                            levels = c("January", "February", "March",
+                                       "April", "May", "June", "July", "August", "September", "October",
+                                       "November", "December")))%>%
       filter(`Site Name` == input$site7)%>%
       filter(variable == input$variable7)%>%
-      summarise(avg = mean(value))
+      filter(year %in% input$year7)%>% 
+      summarise(avg = mean(as.numeric(value), na.rm = TRUE),
+                standard_min = unique(standard_min),
+                standard_max = unique(standard_max))
     
-    ggplot(data = aerator, aes(month, avg), fill = aerator_status)+
-      geom_col()
+    aerator<-aerator%>%
+      mutate(aerator_status = ifelse(year >= 2022, "post", "pre"))%>%
+      na.omit()
+      #mutate(aerator_status = ifelse(month <= "March", "post", "pre"))
+    
+    ggplot(data = aerator, aes(month, avg, color = year, fill= aerator_status))+
+      geom_col()+
+      theme(axis.text.x = element_text(angle = 90))
+     # scale_fill_manual(values = c(pre = "purple", 
+      #                             post = "aquamarine3"))+
+      #scale_color_manual(values = c(2020 = "orange",
+       #                             2021 = "dark green",
+        #                            2022 = "pink", 
+         #                           2023 = "red"))
       
   })
     
