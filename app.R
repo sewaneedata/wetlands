@@ -428,7 +428,7 @@ ui <- dashboardPage(skin = 'black',
                 )
                 ))
              ,
-      # TRENDS TAB
+      # TRENDS TAB -----
       tabItem(tabName = "trends",
               fluidRow(
                 tabBox(
@@ -461,9 +461,10 @@ ui <- dashboardPage(skin = 'black',
                                   choices = c("Cond µS/cm", "ORP mV", "pH", "Turbidity NTU", "NitraLED mg/L", "ODO mg/L",
                                               "Temp °C", "NH4+ -N mg/L", "NH3 mg/L")),
                       # checkboxInput("average_temp", "Average Temperature"),
-                      #checkboxInput("average_rain", "Average Rainfall"),
-                      #checkboxInput("total_rain", "Total Rainfall"),
-                      #checkboxInput("solar", "Solar Measure")
+                      checkboxInput("avg_temp", "Min Temperature"),
+                      checkboxInput("avg_temp2", "Max Temperature"),
+                      checkboxInput("total_rain", "Total Rainfall"),
+                      checkboxInput("solar", "Solar Measure")
 
                       
                     )),
@@ -755,7 +756,7 @@ and many other living organisms, bacteria in wastewater treatment systems functi
   
   output$trend_data <- renderPlotly({  
  
-    ############################## month trends
+    ############################## month trends in server -----
     month_trend<-all_data%>%
       group_by(month, `Site Name`)%>%
       filter(year == input$year4)%>%
@@ -784,7 +785,7 @@ and many other living organisms, bacteria in wastewater treatment systems functi
    #   if(input$average_rain){geom_bar(data = mtcars, x = mpg)}
      # else{NA}
     
-    ggplot()+
+    g <- ggplot()+
       geom_point(data = month_trend, aes(as.numeric(month), avg_month, color = site))+
       geom_line(data = month_trend, aes(as.numeric(month), avg_month, color = site))+
       theme(axis.text.x = element_text(angle = 90))+
@@ -796,6 +797,64 @@ and many other living organisms, bacteria in wastewater treatment systems functi
                                     "April", "May", "June", "July", "August", "September", "October",
                                     "November", "December"))
     
+    # Capture the show average rain checkbox
+    show_total_rain <- input$total_rain 
+    if(show_total_rain){
+     # save(g, file = '~/Desktop/temp.RData')
+      # create some fake data
+      oess_totalrain2 <-oess_data2 %>% 
+        mutate(month = month(dates))%>%
+        group_by(month) %>% 
+        filter(year(dates)==2021) %>% 
+        summarise(total.rain = sum(na.rm = TRUE,(`rainfall (inches)`)))
+      g <- g +
+        geom_line(color = 'purple',
+                  data = oess_totalrain2,
+                  aes(x = month,
+                      y = total.rain))
+    }
+    getwd()
+    ### check input solar -----
+    show_solar <- input$solar 
+    if(show_solar){
+      #save(g, file = '~/Desktop/wetlands project folder/wetlands')
+      # create some fake data
+      avg_solar <- sudhour%>% 
+        filter(yyyy == 2021) %>% 
+        group_by(mm) %>% 
+        summarise(avgsolar = mean(`Solar Total (MJ/m²)`))
+      g <- g +
+        geom_line(color = 'blue',
+                  data = avg_solar,
+                  aes(x = mm,
+                      y = avgsolar))
+    }
+    ### check input max temperature -----
+    show_avg_temp <- input$avg_temp 
+    if(show_avg_temp){
+      #save(g, file = '~/Desktop/wetlands project folder/wetlands')
+      # create some fake data
+      tempmax <- oess_data2 %>% 
+        mutate(month = month(dates))%>%
+        group_by(month) %>% 
+        filter(year(dates) == 2021) %>% 
+        summarise(max.temp = mean(`High temp (F)`))
+      g <- g +
+        geom_line(data = tempmax, aes(x = month, y = max.temp), fill= 'red')
+    }
+    ### check input min temperature -----
+    show_avg_temp2 <- input$avg_temp2
+    if(show_avg_temp2){
+      #save(g, file = '~/Desktop/wetlands project folder/wetlands')
+      # create some data
+      tempmin <- oess_data2 %>%
+        mutate(month = month(dates))%>% 
+        group_by(month) %>% 
+        filter(year(dates) == 2021) %>% 
+        summarise(min.temp = mean(`Low temp (F)`))
+      g <- g +
+        geom_line(data = tempmin, aes(x = month, y = min.temp), fill= 'orange')
+    }
 
   })
   
