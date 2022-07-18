@@ -97,7 +97,7 @@ box_turb <- all_data %>%
   na.omit()
 
 # boxplot of turbidity
-#substr(month,1,1),
+
 ggplot(data = box_turb, aes(x = month, y = as.numeric(value)))+
   geom_boxplot()+
   labs(title = 'Variance of Turbidity (2021)',
@@ -108,6 +108,7 @@ ggplot(data = box_turb, aes(x = month, y = as.numeric(value)))+
   facet_wrap(~`Site Name`)
 
 # code for for predictive model for turbidity
+
 avg_turb <- box_turb %>% 
   filter(year == 2021) %>% 
   group_by(month) %>% 
@@ -116,6 +117,7 @@ filter(variable =='Turbidity NTU') %>%
   summarise(avgturb = mean(as.numeric(value)))
 
 # predictive model for turbidity plot
+
 ggplot(data = box_turb, aes( x= (month), y = as.numeric(value)))+
   geom_point()+
    theme(axis.text.x = element_text(angle = 90))+
@@ -133,6 +135,7 @@ ggplot(data = box_turb, aes( x= (month), y = as.numeric(value)))+
 ################### Anova Test ########################
 
 # pH anova test
+
 anv_ph <- all_data %>%
   filter(  variable == "pH" ) %>%
   filter(year == 2021) %>% 
@@ -145,6 +148,7 @@ anv_ph <- aov( value ~ Site + month, data = anv_ph)
 TukeyHSD(anv_ph)
 
 # turbidity anova test  
+
 anv_turb <- all_data %>%
   filter(year == 2021) %>% 
   filter(  variable == 'Turbidity NTU' ) %>%
@@ -156,6 +160,7 @@ anv_turb <- aov( value ~ Site + month, data = anv_turb )
 summary(anv_turb)
 
 # conductivity anova test
+
 anv_cond <- all_data %>%
   filter( variable == 'Cond µS/cm') %>%
   filter(value != 'SENSOR FAILURE') %>% 
@@ -168,6 +173,7 @@ anv_cond <- aov( value ~ Site + month, data = anv_cond)
 summary(anv_cond)
 
 # ODO anova test
+
 anv_odo <- all_data %>%
 filter( variable == 'ODO mg/L') %>%
   filter(year == 2021) %>% 
@@ -179,6 +185,7 @@ anv_odo <- aov(value ~ Site + month, data = anv_odo)
 summary(anv_odo)
 
 # ORP mv anova test
+
 anv_orp <- all_data %>%
   filter( variable == 'ORP mV') %>%
   filter(year == 2021) %>% 
@@ -190,6 +197,7 @@ anv_orp <- aov(value ~ Site + month, data = anv_orp)
 summary(anv_orp)  
 
 # SpCond µS/cm anova test
+
 anv_spcond <- all_data %>%
   filter( variable == 'ORP mV') %>%
   filter(year == 2021) %>% 
@@ -201,6 +209,7 @@ anv_spcond <- aov(value ~ Site + month, data = anv_spcond)
 summary(anv_spcond)
 
 # NitraLED mg/L anova test
+
 anv_nitra <- all_data %>%
   filter( variable == 'ORP mV') %>%
   filter(year == 2021) %>% 
@@ -212,6 +221,7 @@ anv_nitra <- aov(value ~ Site + month, data = anv_nitra)
 summary(anv_nitra)
 
 # Water temp anova test 
+
 anv_temp_c <- all_data %>%
   filter( variable == 'Temp °C') %>%
   filter(year == 2021) %>% 
@@ -224,6 +234,7 @@ anv_temp_c <- aov(value ~ Site + month, data = anv_temp_c)
 summary(anv_temp_c)
 
 # NH4+ -N mg/L Anova Test
+
 anv_nh4 <- all_data %>%
   filter( variable == 'NH4+ -N mg/L') %>%
   filter(year == 2021) %>% 
@@ -236,6 +247,7 @@ anv_nh4 <- aov(value ~ month, data = anv_nh4)
 summary(anv_nh4)
 
 # NH3 mg/L anova test
+
 anv_nh3 <- all_data %>%
   filter( variable == 'NH3 mg/L') %>%
   filter(year == 2021) %>% 
@@ -247,7 +259,7 @@ anv_nh3 <- all_data %>%
 anv_nh3 <- aov(value ~ month, data =anv_nh3)
 summary(anv_nh3)
 
-###################################################3
+###################################################
 url5 <- "https://docs.google.com/spreadsheets/d/14nn7NWMBatbzcz9nqcTFzQghmzMUE2o0/edit#gid=571749034"
 sud_hourly<-gsheet2tbl(url5)
 
@@ -263,16 +275,44 @@ ggplot(data = errors, aes( x = variable, y = n))+
   facet_wrap(~month)
   
 #####################################################
+########## OESS and SUD comparisons ###########
+
 url5 <- "https://docs.google.com/spreadsheets/d/14nn7NWMBatbzcz9nqcTFzQghmzMUE2o0/edit#gid=571749034"
 sud_hourly<-gsheet2tbl(url5)
 url4 <-"https://docs.google.com/spreadsheets/d/1A_ljZAZmiRBsW5iL40EGRlVG1LkMa_w_7rqCnwAFWKA/edit#gid=537305485"
 oess_data<-gsheet2tbl(url4)
 
+# OESS Precipitation and Temp data  ####3 YES ALL OF THIS?
+oess_data2 <- oess_data
+
+# remove titles within data set
+#rainfalldf1 <- rainfalldf1 %>% 
+#filter(Date != 'Date') %>%
+#drop_na( Year )
+
+# month collumn
+oess_data2 <- oess_data %>% 
+  filter(!is.na(Date)) %>%
+  unite( col=Date, Year:Date, sep="-")
+#mutate( Month = month.abb[month( as_date(Date)) ] )
+
+#reformat datasets because date was not matche up with the year
+oess_data2<-oess_data2 %>%
+  mutate(dates = c(oess_data2$Date[1:369] %>% ydm(), oess_data2$Date[370:376] %>% ymd())) %>% 
+  mutate( Month = month.abb[month( as_date(dates)) ] )
+
+# select the columns needed
+oess_data2 <- oess_data2 %>% 
+  select(dates, Date, Month, `High temp (F)`, `Low temp (F)`, `rainfall (inches)`)
+####################################################
+
 # select what ya need
+
 sud_hourly<- sud_hourly %>% 
   select(Timestamp, `VPD Avg (Kpa)`, `Rain (mm)`, `Solar Total (MJ/m²)`)
 
 # make a year column
+
 sudhour<- sud_hourly %>% 
   mutate(yyyy = year(mdy_hm(Timestamp))) 
 bads <- which(is.na(sudhour$yyyy))
@@ -280,14 +320,16 @@ bads <- which(is.na(sudhour$yyyy))
 sudhour$yyyy[bads]<-year(ymd_hms(sudhour$Timestamp[bads]))        
 sudhour[bads,]
 
-# month column
+# Make a month column
+
 sudhour <- sudhour %>% 
 mutate(mm = month(mdy_hm(Timestamp)))
 bads2 <- which(is.na(sudhour$mm))
 sudhour$mm[bads2]<-month(ymd_hms(sudhour$Timestamp[bads2]))
 sudhour[bads2,]
 
-# sud VPD avg
+# SUD VPD avg
+
 avg_vpd<- sudhour %>% 
   mutate(Month = factor(mm,
   levels = c('Jan', 'Feb', 
@@ -300,7 +342,8 @@ avg_vpd<- sudhour %>%
   group_by(mm) %>% 
 summarise(vpdavg = mean(`VPD Avg (Kpa)`)) 
 
-# plot of average VPD
+# Plot of average VPD
+
 ggplot(data = avg_vpd, aes( x = mm, y = vpdavg))+
   geom_col(fill = 'aquamarine3')+
   scale_x_continuous(
@@ -313,13 +356,15 @@ ggplot(data = avg_vpd, aes( x = mm, y = vpdavg))+
        y = 'Average VPD (Kpa)',
        x = 'Months')
 
-# solar total 
+# SUD avg solar total 
+
 avg_solar <- sudhour%>% 
   filter(yyyy == 2021) %>% 
   group_by(mm) %>% 
   summarise(avgsolar = mean(`Solar Total (MJ/m²)`))
 
-# graph of average solar total 
+# Plot of average solar total 
+
 ggplot(data = avg_solar, aes(x = mm, y = avgsolar)) +
   geom_col(fill = 'yellow3')+
   scale_x_continuous(
@@ -332,7 +377,10 @@ ggplot(data = avg_solar, aes(x = mm, y = avgsolar)) +
        y = 'Solar Total (MJ/m2)',
        x = 'Months')
 
-# total rainfall per month     # YES
+########### Rainfall at SUD and OESS ###################
+
+# OESS total rainfall per month    # YES
+
 oess_totalrain <-oess_data2 %>% 
   mutate(Month = factor(Month,
                         levels = c('Jan', 'Feb', 
@@ -345,13 +393,14 @@ oess_totalrain <-oess_data2 %>%
   filter(year(dates)==2021) %>% 
   summarise(OESS = sum(na.rm = TRUE,(`rainfall (inches)`)))
 
-# SUD rain avg
+# SUD avg rainfall
+
 avg_rain <-  sudhour %>% 
   filter(yyyy == 2021) %>% 
   group_by(mm) %>% 
   summarise(avgrain = mean(`Rain (mm)`))
 
-#  SUD average rainfall
+#  SUD average rainfall plot
 ggplot(data = avg_rain, aes(x = mm, y = avgrain))+
   scale_x_continuous(
     breaks = seq_along(month.name), 
@@ -364,10 +413,23 @@ labs(title = "Rainfall per Month (2021)",
      y = 'Average Rainfall (mm)',
      x = 'Months')
 
+# OESS 
+mean_sdrain <- oess_data2 %>% 
+  mutate(Month = factor(Month,
+                        levels = c('Jan', 'Feb', 
+                                   'Mar', 
+                                   'Apr', 
+                                   'May', 'Jun', 
+                                   'Jul', 'Aug', 'Sep', 
+                                   'Oct', 'Nov', 'Dec'))) %>% 
+  group_by(Month) %>% 
+  summarise(mean = mean(`rainfall (inches)`, na.rm = TRUE), sd = sd(`rainfall (inches)`, na.rm = TRUE)) %>%           
+  mutate(lower = mean-sd, upper = mean+sd)
+
 oess_rain <- mean_sdrain %>% 
   select(mean, Month)
 
-# rainfall in SUD and OESS
+# Average rainfall per month in SUD and OESS
 ggplot()+
   geom_col(data = oess_rain, aes(x = Month, y = mean), fill = 'red')+
   geom_col(data = avg_rain, aes( x = mm, y = avgrain), fill = 'blue')+
@@ -378,20 +440,23 @@ ggplot()+
   theme(axis.text.x = element_text(angle = 90))
 
 # total rainfall at SUD
+
 sud_totalrain <- sudhour %>% 
   filter(yyyy == 2021) %>% 
   group_by(mm) %>% 
   summarise(SUD = sum(`Rain (mm)`))
 
 # code for comparison of total rainfall at sud and oess
+
 comparedrain <- cbind(sud_totalrain, oess_totalrain)
 
 comparedrain <- comparedrain %>% select(-mm)
 
-# plot of total rain at oess and sud 
+# plot of total rain at OESS and SUD
+
 ggplot( comparedrain %>% pivot_longer(!Month), aes(x=Month, y=value, fill=name)) + 
   geom_col(position="dodge")+
- View(comparedrain %>% pivot_longer(!Month))+
+ #View(comparedrain %>% pivot_longer(!Month))+
   labs(title = 'Total Rainfall per Month (2021)',
        subtitle = 'Sewanee Utility District vs. OESS',
        y = 'Total Rain (mm)', 
@@ -399,25 +464,11 @@ ggplot( comparedrain %>% pivot_longer(!Month), aes(x=Month, y=value, fill=name))
   theme(axis.text.x = element_text(angle = 90))
   
 
-#################################################    
-
 ####################################################
 ############ Delta between each site ###############
 
-all_data %>% 
-  filter(`Site Name` == 'Lagoon C') %>% 
-  filter(variable == 'Cond µS/cm') %>% 
-tally()
-all_data %>% 
-  filter(`Site Name` == 'Wetland Basin 3') %>% 
-  filter(variable == 'Cond µS/cm' ) %>%
-  tally()
-
-# Basin 3: NitraLed: 7306, NH4: 7306, NH3: 7306, Cond: 7306
-# Lagoon C: Nitraled: 7686, NH4: 0, NH3: 0, Cond: 7686
-# missing variables: 17,272: lagoon C has 380 more rows per variable
-
 # code for delta between Wetland Basin 3 and Lagoon C
+
 all_data2 <- 
   all_data %>% 
   mutate(dt = lubridate::as_datetime(paste(Date, `Time (HH:mm:ss)`))) %>% 
@@ -439,11 +490,8 @@ all_data2$delta %>% hist
 all_data2$delta         
 length(which(is.na(all_data2$delta))) / nrow(all_data2)
 
+# Mean of the delta for each variable 
 
-ggplot(data = meandelta, aes( x = Month, y = deltacond))+
-  geom_col(fill = 'red')
-
-# mean of the delta for each variable 
 deltatotal <- all_data2 %>% 
   filter(year == 2021) %>% 
   group_by(variable, month) %>% 
@@ -454,6 +502,8 @@ deltatotal <- all_data2 %>%
                           'January', 'February', 'March' ,'April',
                           'May', 'June', 'July', 'August', 'September', 
                           'October', 'November', 'December'))) 
+
+# Plot for the delta of turbidity per month 
 ggplot(data = deltatotal, aes(x = Month, y = meandelta))+
   geom_col(color = 'red')+
   theme(axis.text.x = element_text(angle = 90))

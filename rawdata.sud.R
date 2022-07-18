@@ -96,6 +96,7 @@ avg_Solartotal <- sud3 %>%
                                 "10" = 'October', 
                                 "11" = 'November', 
                                 "12" = 'December'))
+
 # average solar total ##### YES
 ggplot()+
   geom_col(data = avg_Solartotal, aes(x = months, y = avgSolar), fill = 'gold')+
@@ -185,7 +186,7 @@ oess_totalrain <-oess_data2 %>%
 
 # total rainfall plot      # YES
 ggplot()+
-  geom_col(data = oess_totalrain, aes( x= Month, y = totalrain),fill  = 'skyblue1')+
+  geom_col(data = oess_totalrain, aes( x= Month, y = oessrain),fill  = 'skyblue1')+
   labs(title = 'TotalRainfall (2021)',
        subtitle = 'Total Rainfall (in) per Month ',
        y = 'Total Rainfall (in)',
