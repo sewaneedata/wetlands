@@ -685,7 +685,8 @@ ui <- dashboardPage(skin = 'black',
                         choices = c("Wetland Basin 3", "Lagoon C")),
             selectInput("year7", "Year",
                         choices = c(2020, 2021, 2022, 2023),
-                        multiple = TRUE)
+                        multiple = TRUE,
+                        selected = 2020)
               
             )
           )
