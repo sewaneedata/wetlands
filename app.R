@@ -917,6 +917,7 @@ and many other living organisms, bacteria in wastewater treatment systems functi
       g <- g +
         geom_line(data = tempmin, aes(x = month, y = min.temp), color= 'orange')
     }
+    g <- g
 
   })
   
@@ -1206,25 +1207,26 @@ and many other living organisms, bacteria in wastewater treatment systems functi
                                        "November", "December")))%>%
       filter(`Site Name` == input$site7)%>%
       filter(variable == input$variable7)%>%
-      filter(year %in% input$year7)%>% 
-      summarise(avg = mean(as.numeric(value), na.rm = TRUE),
-                standard_min = unique(standard_min),
-                standard_max = unique(standard_max))
+      filter(year %in% input$year7)
+      aerator <- aerator %>% 
+        summarise(avg = mean(as.numeric(value), na.rm = TRUE)) %>% 
+        arrange(year) %>% 
+        mutate(year = factor(year)) %>% 
+        na.omit
+                # standard_min = unique(standard_min),
+                # standard_max = unique(standard_max))
     
     aerator<-aerator%>%
-      mutate(aerator_status = ifelse(year >= 2022, "post", "pre"))%>%
-      na.omit()
+      mutate(aerator_status = ifelse(as.numeric(levels(year))[year] >= 2022, "post", "pre"))
       #mutate(aerator_status = ifelse(month <= "March", "post", "pre"))
     
-    ggplot(data = aerator, aes(month, avg, color = year, fill= aerator_status))+
-      geom_col()+
+    ggplot(data = aerator, aes(month, avg, color = year, fill = aerator_status))+
+      geom_col(position = "dodge2") +
       theme(axis.text.x = element_text(angle = 90))
+      
      # scale_fill_manual(values = c(pre = "purple", 
       #                             post = "aquamarine3"))+
-      #scale_color_manual(values = c(2020 = "orange",
-       #                             2021 = "dark green",
-        #                            2022 = "pink", 
-         #                           2023 = "red"))
+      #scale_color_manual(values = c(2020 = "orange", 2021 = "dark green", 2022 = "pink", 2023 = "red"))
       
   })
     
