@@ -887,7 +887,7 @@ and many other living organisms, bacteria in wastewater treatment systems functi
         group_by(mm) %>% 
         summarise(avgsolar = mean(`Solar Total (MJ/m²)`))
       g <- g +
-        geom_line(color = 'blue',
+        geom_line(color = "blue",
                   data = avg_solar,
                   aes(x = mm,
                       y = avgsolar))
