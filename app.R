@@ -592,7 +592,7 @@ ui <- dashboardPage(skin = 'black',
                 ################################## BOXPLOTS TAB #############################
       tabItem(tabName = "boxplots",
               fluidRow(
-                box(title = "Varience of Variables by Month",
+                box(title = "Variance of Variables by Month",
                     solidHeader = TRUE,
                     width = 12,
                   plotlyOutput("avg_boxplot"),
