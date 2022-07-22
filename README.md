@@ -15,3 +15,13 @@ If you would like to see a more detailed version of the code you can use this li
 https://docs.google.com/document/d/1xJY_xOvZDp4a-zGQy27AG0SKrjaXTxVOe8Xw1H7eEZI/edit
 
 If you would like to learn more about our final project, you can visit this link to our final report. 
+https://docs.google.com/presentation/d/1q6dBQBBB4I07RZHvQBYrUYleda5H2Y9vezAZXJ_PRmU/edit#slide=id.g13eaa7f5975_0_0
+
+If you would like to learn more about the details of our project, visit this link to our literature review. 
+https://docs.google.com/document/d/1Isd3hMcRnuYBvEn-dAaTaRDXZxXo7DQRekWRngEvywk/edit
+
+If you would like to learn more about our product, visit this link. 
+https://docs.google.com/document/d/1wP3eLgAYnYx8J-YaHijsuuHi3fjnNv-HVqE4D_ZBXYQ/edit
+
+If you would like to learn more about our data, visit this link. 
+https://docs.google.com/document/d/1XKQiSWaKGKBNb73Yh-lJLRqaE4mdx7pQG-ewtTB3PmA/edit
