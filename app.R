@@ -946,15 +946,30 @@ and many other living organisms, bacteria in wastewater treatment systems functi
   
     output$trend_data3 <- renderPlotly({    
      
-       ######################################## hourly trends
+       ######################################## hourly trends -----
       time_attempt<-all_data %>%
         #mutate( hour = hour(`Time (HH:mm:ss)`)) %>%
        # filter(year == input$year6)%>%
         filter(variable == input$variable6)%>%
-        filter(Date %in% input$date6)%>% 
-        filter(`Site Name` == input$site6)
+        filter(Date %in% input$date6)%>%
+        filter(`Site Name` == input$site6)%>%
+        mutate(Time = factor(`Time (HH:mm:ss)`,
+               levels = c(
+                 "0:00:00","1:00:00", "2:00:00", "3:00:00", "4:00:00", "5:00:00", "6:00:00", 
+                 "7:00:00", "8:00:00", "9:00:00", "10:00:00", "11:00:00", "12:00:00", "13:00:00", 
+                 "14:00:00","15:00:00", "16:00:00", "17:00:00", "18:00:00", "19:00:00", "20:00:00", 
+                 "21:00:00", "22:00:00", "23:00:00"
+               )))
+                 
+               
+               # levels = c(0:00:00, 1:00:00, 2:00:00, 3:00:00, 4:00:00, 5:00:00, 6:00:00, 7:00:00, 
+               #            8:00:00, 9:00:00, 10:00:00, 11:00:00, 12:00:00, 13:00:00, 14:00:00, 15:00:00,
+               #           16:00:00, 17:00:00, 18:00:00, 19:00:00, 20:00:00, 21:00:00, 22:00:00, 23:00:00))
       
-      ggplot(data = time_attempt, aes(x= `Time (HH:mm:ss)`, y=as.numeric(value), color = factor(Date)))+
+        
+        
+      
+      ggplot(data = time_attempt, aes(x= Time, y=as.numeric(value), color = factor(Date)))+
         geom_point()+
         geom_line(aes(group = factor(Date)))+
         labs(x = "Hour of the Day",
