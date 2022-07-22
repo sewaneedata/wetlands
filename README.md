@@ -13,7 +13,7 @@ The seventh tab shows the aeration pre and post. It will allow our partner to co
 If you would like to see the code for ANOVA tests visit the "anova_test.R" file in our list of code. 
 
 If you would like to see a more detailed version of the code you can use this link. 
-[Index For Code.pdf](https://github.com/sewaneedata/wetlands/files/9169369/Index.For.Code.pdf)
+[Index For Code (1).pdf](https://github.com/sewaneedata/wetlands/files/9169946/Index.For.Code.1.pdf)
 
 If you would like to learn more about our final project, you can visit this link to our final report. 
 [Final Report (1).pdf](https://github.com/sewaneedata/wetlands/files/9169380/Final.Report.1.pdf)
