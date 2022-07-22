@@ -1,6 +1,5 @@
 # Wetlands Final Package
 
-
 Our code is in the "app.R" file name. It has all of the code needed to run our dashboard. 
 Our dashboard has 7 different tabs.
 The first tab is the overview and it has 3 individual tabs. The first shows the project summary, the second is the water quality variable definitions, and the third tab shows wetland photos. 
@@ -10,6 +9,8 @@ The fourth tab shows boxplots of each variable by month and by site.
 The fifth tab shows the descriptive model for each variable by month and by site. 
 The sixth tab shows weather data through bar plots. It shows each weather variable with the deviation of each variable per month. 
 The seventh tab shows the aeration pre and post. It will allow our partner to continue to input data and see future trends by month. 
+
+If you would like to see the code for ANOVA tests visit the "anova_test.R" file in our list of code. 
 
 If you would like to see a more detailed version of the code you can use this link. 
 https://docs.google.com/document/d/1xJY_xOvZDp4a-zGQy27AG0SKrjaXTxVOe8Xw1H7eEZI/edit
