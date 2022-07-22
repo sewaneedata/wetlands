@@ -25,4 +25,4 @@ If you would like to learn more about our product, visit this link.
 https://docs.google.com/document/d/1wP3eLgAYnYx8J-YaHijsuuHi3fjnNv-HVqE4D_ZBXYQ/edit
 
 If you would like to learn more about our data, visit this link. 
-https://docs.google.com/document/d/1XKQiSWaKGKBNb73Yh-lJLRqaE4mdx7pQG-ewtTB3PmA/edit
+file:///Users/harrisonlowery/Downloads/Data%20Description_Data%20Dictionary%20(2).pdf
