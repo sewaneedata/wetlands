@@ -25,4 +25,5 @@ If you would like to learn more about our product, visit this link.
 https://docs.google.com/document/d/1wP3eLgAYnYx8J-YaHijsuuHi3fjnNv-HVqE4D_ZBXYQ/edit
 
 If you would like to learn more about our data, visit this link. 
-file:///Users/harrisonlowery/Downloads/Data%20Description_Data%20Dictionary%20(2).pdf
+
+[Data Description_Data Dictionary (3).pdf](https://github.com/sewaneedata/wetlands/files/9169348/Data.Description_Data.Dictionary.3.pdf)
